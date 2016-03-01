@@ -2,7 +2,7 @@
 # Blink a LED every second
 
 GPNR="1"
-SLEEP="1"
+SLEEP="0.3"
 GPPATH="/sys/class/gpio"
 GPIODIR="${GPPATH}/gpio${GPNR}"
 
