@@ -14,5 +14,5 @@ while true; do
 echo 1 > /sys/class/gpio/gpio${GPNR}/value
 sleep $SLEEP
 echo 0 > /sys/class/gpio/gpio${GPNR}/value
-sleep 
+sleep $SLEEP
 done
