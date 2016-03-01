@@ -47,47 +47,47 @@ int main (int argc, char *argv [])
     }
     //  Start LED cycling until Zyre is ready
     blink_led_t *led [3] = { blink_led_new (1), blink_led_new (2), blink_led_new (3) };
+    blink_led_on (led [0]);
 
-/*
     zyre_t *zyre = zyre_new (NULL);
-    zsys_info ("Create Zyre node, uuid=%s, name=%s", zyre_uuid (zyre), zyre_name (zyre));
     if (verbose)
         zyre_set_verbose (zyre);
     if (iface)
         zyre_set_interface (zyre, iface);
     zyre_start (zyre);
-    zyre_join (zyre, "GLOBAL");
-    if (verbose)
-        zyre_print (zyre);
+    zyre_join (zyre, "BLINK");
+
+    zpoller_t *poller = zpoller_new (zyre_socket (zyre), NULL);
+    bool waiting = true;
+    int current_led = 0;
+    while (waiting) {
+        zsock_t *which = (zsock_t *) zpoller_wait (poller, 333);
+        if (!which)
+            break;              //  Interrupted
+
+        printf ("."); fflush (stdout);
+        blink_led_off (led [current_led]);
+        current_led = (current_led + 1) % 3;
+        blink_led_on (led [current_led]);
+
+        zmsg_t *msg = zyre_recv (zyre);
+        char *command = zmsg_popstr (msg);
+        if (streq (command, "JOIN"))
+            waiting = false;
+        zstr_free (&command);
+        zmsg_destroy (&msg);
+    }
+    blink_led_off (led [current_led]);
 
     while (true) {
-        zyre_event_t *event = zyre_event_new (zyre);
-        if (!event)
-            break;              //  Interrupted
-        if (verbose)
-            zyre_event_print (event);
-
-        if (streq (zyre_event_type (event), "ENTER")) {
-            //  If new peer, say hello to it and wait for it to answer us
-            zsys_info ("[%s] peer entered", zyre_event_peer_name (event));
-            zyre_whispers (zyre, zyre_event_peer_uuid (event), "Hello");
-        }
-        else
-        if (streq (zyre_event_type (event), "EXIT")) {
-            zsys_info ("[%s] peer exited", zyre_event_peer_name (event));
-        }
-        else
-        if (streq (zyre_event_type (event), "WHISPER")) {
-            zsys_info ("[%s] received ping (WHISPER)", zyre_event_peer_name (event));
-            zyre_shouts (zyre, "GLOBAL", "Hello");
-        }
-        else
-        if (streq (zyre_event_type (event), "SHOUT")) {
-            zsys_info ("[%s](%s) received ping (SHOUT)",
-                       zyre_event_peer_name (event), zyre_event_group (event));
-        }
-        zyre_event_destroy (&event);
+        zmsg_t *msg = zyre_recv (zyre);
+        if (!msg)
+            break;
+        zmsg_destroy (&msg);
     }
-    zyre_destroy (&zyre);*/
+    zyre_destroy (&zyre);
+    blink_led_destroy (&led [0]);
+    blink_led_destroy (&led [1]);
+    blink_led_destroy (&led [2]);
     return 0;
 }

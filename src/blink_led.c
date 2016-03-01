@@ -19,8 +19,7 @@
 
 #include "blink_classes.h"
 
-#define DEVICE_PATH  "/sys/devices/platform/leds-gpio/leds/gl_ar150:%s/brightness";
-
+#define DEVICE_PATH  "/sys/devices/platform/leds-gpio/leds/gl_ar150:%s/brightness"
 
 //  Structure of our class
 
@@ -68,7 +67,7 @@ blink_led_destroy (blink_led_t **self_p)
 int
 blink_led_on (blink_led_t *self)
 {
-    assert (self)
+    assert (self);
     assert (self->device);
 
     int handle = open (self->device, O_WRONLY);
@@ -77,16 +76,17 @@ blink_led_on (blink_led_t *self)
         return -1;
     }
     close (handle);
+    return 0;
 }
 
 
 //  --------------------------------------------------------------------------
 //  Switch the LED off; returns 0 if successful, else -1.
 
-blink_led_t *
+int
 blink_led_off (blink_led_t *self)
 {
-    assert (self)
+    assert (self);
     assert (self->device);
 
     int handle = open (self->device, O_WRONLY);
@@ -95,6 +95,7 @@ blink_led_off (blink_led_t *self)
         return -1;
     }
     close (handle);
+    return 0;
 }
 
 

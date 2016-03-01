@@ -1,25 +1,26 @@
-Name(7)
-=======
-
+blink(1)
+========
 
 NAME
 ----
-blink - Blinken Lichten
-
+blink - description
 
 SYNOPSIS
 --------
 ----
-#include <blink.h>
-
-cc ['flags'] 'files' -lblink ['libraries']
+Please add @interface section in ../src/blink.c.
 ----
-
 
 DESCRIPTION
 -----------
 
-Classes
-~~~~~~~
+blink - 
 
-Something.
+Please add @discuss section in ../src/blink.c.
+
+EXAMPLE
+-------
+.From blink_test method
+----
+Please add @selftest section in ../src/blink.c.
+----

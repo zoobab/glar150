@@ -21,14 +21,14 @@ extern "C" {
 //  Create a new LED instance; the valid names are "wlan" (red), "lan" (green
 //  center), "wan" (green edge).
 BLINK_EXPORT blink_led_t *
-    blink_led_new (void);
+    blink_led_new (int index);
 
 //  Switch the LED on; returns 0 if successful, else -1.
-BLINK_EXPORT int *
+BLINK_EXPORT int
     blink_led_on (blink_led_t *self);
 
 //  Switch the LED off; returns 0 if successful, else -1.
-BLINK_EXPORT int *
+BLINK_EXPORT int
     blink_led_off (blink_led_t *self);
 
 //  Destroy the blink_led
