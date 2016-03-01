@@ -1,0 +1,25 @@
+Name(7)
+=======
+
+
+NAME
+----
+blink - Blinken Lichten
+
+
+SYNOPSIS
+--------
+----
+#include <blink.h>
+
+cc ['flags'] 'files' -lblink ['libraries']
+----
+
+
+DESCRIPTION
+-----------
+
+Classes
+~~~~~~~
+
+Something.
