@@ -1,0 +1,10 @@
+<project 
+    name = "Blink" description = "Blinken Lichten"
+    prefix = "blink"
+    script = "zproject.gsl"
+    repository = "git://github.com/codejockey/blink.git">
+    <include filename = "license.xml" />
+    <use project = "zyre" />
+    <main name = "blink" />
+    <class name = "blink_led">Control server LEDs</class>
+</project>
