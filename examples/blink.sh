@@ -15,10 +15,10 @@ else
     echo ${GPNR} > ${GPPATH}/export
 fi
 
-# Initalize the GPIO direction
+echo "Initalize the GPIO direction"
 echo out > ${GPIODIR}/direction
 
-# Loop
+echo "Blinking loop..."
 while true; do
     echo 1 > ${GPIODIR}/value
     sleep $SLEEP
