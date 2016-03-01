@@ -1,17 +1,13 @@
-#!/bin/sh
- 
-# -q quiet
-# -c nb of pings to perform
+#!/bin/ash
 
-GW_IP="192.168.1.1"
-LED="/sys/devices/platform/leds-gpio/leds/gl_ar150:wlan/brightness"
+GW_IP="192.168.2.132"
 
-ping -q -c3 ${GW_IP} > /dev/null
+ping -q -W2 -c2 ${GW_IP} > /dev/null
  
-if [ $? -eq 0 ]
-then
-    echo "ok"
+if [ $? -eq 0 ]; then
+    echo "ok" > /tmp/ping_status
+    exit 0
 else
-    # blink the RED LED of the GL-150
-    while true; do echo 1 > ${LED} && sleep 0.2 && echo 0 > ${LED} && sleep 0.2 ; done
+    echo "fail" > /tmp/ping_status
+    exit 1
 fi
