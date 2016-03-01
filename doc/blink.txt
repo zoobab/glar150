@@ -1,0 +1,26 @@
+blink(1)
+========
+
+NAME
+----
+blink - description
+
+SYNOPSIS
+--------
+----
+Please add @interface section in ../src/blink.c.
+----
+
+DESCRIPTION
+-----------
+
+blink - 
+
+Please add @discuss section in ../src/blink.c.
+
+EXAMPLE
+-------
+.From blink_test method
+----
+Please add @selftest section in ../src/blink.c.
+----
