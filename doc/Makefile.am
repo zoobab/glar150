@@ -39,7 +39,7 @@ blink_led.txt:
 blink_shell.txt:
 	./mkman $@
 clean:
-	rm -f *.1 *.3
+	rm -f *.1 *.3 *.7
 	./mkman blink_led blink_shell 
 endif
 ################################################################################

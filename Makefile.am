@@ -11,12 +11,11 @@ AM_CFLAGS = \
 
 AM_CPPFLAGS = \
     ${libzmq_CFLAGS} \
-    ${uuid_CFLAGS} \
     ${czmq_CFLAGS} \
     ${zyre_CFLAGS} \
     -I$(srcdir)/include
 
-project_libs = ${libzmq_LIBS} ${uuid_LIBS} ${czmq_LIBS} ${zyre_LIBS}
+project_libs = ${libzmq_LIBS} ${czmq_LIBS} ${zyre_LIBS}
 
 SUBDIRS = doc
 DIST_SUBDIRS = doc
