@@ -25,6 +25,7 @@ typedef struct {
     char *iface;
     blink_led_t *led [3];
     zyre_t *zyre;
+    size_t peers;               //  Number of peers
 } self_t;
 
 static int
@@ -89,9 +90,10 @@ s_join_cluster (self_t *self)
         if (which == zyre_socket (self->zyre)) {
             zmsg_t *msg = zyre_recv (self->zyre);
             char *command = zmsg_popstr (msg);
-            if (streq (command, "JOIN"))
+            if (streq (command, "JOIN")) {
+                self->peers++;
                 waiting = false;
-
+            }
             zstr_free (&command);
             zmsg_destroy (&msg);
         }
@@ -106,21 +108,9 @@ s_join_cluster (self_t *self)
     return true;
 }
 
-static void
-s_broadcast_commands (self_t *self)
-{
-    while (!zsys_interrupted) {
-        char command [1024];
-        if (!fgets (command, 1024, stdin))
-            break;
-        //  Line ends in \n, which we need to discard
-        command [strlen (command) - 1] = 0;
-        zyre_shouts (self->zyre, "BLINK", "%s", command);
-    }
-}
 
 static void
-s_execute_commands (self_t *self)
+s_capture_commands (self_t *self)
 {
     //  Wait for commands, and execute via /bin/sh
     while (true) {
@@ -130,8 +120,9 @@ s_execute_commands (self_t *self)
         if (self->verbose)
             zyre_event_print (event);
 
-        if (streq (zyre_event_type (event), "ENTER")) {
-            zsys_info ("[%s] peer entered", zyre_event_peer_name (event));
+        if (streq (zyre_event_type (event), "JOIN")) {
+            zsys_info ("[%s] peer joined", zyre_event_peer_name (event));
+            self->peers++;
             //  Flash 2nd LED three times rapidly
             for (int repeat = 0; repeat < 3; repeat++) {
                 blink_led_on (self->led [1]);
@@ -141,8 +132,9 @@ s_execute_commands (self_t *self)
             }
         }
         else
-        if (streq (zyre_event_type (event), "EXIT")) {
-            zsys_info ("[%s] peer exited", zyre_event_peer_name (event));
+        if (streq (zyre_event_type (event), "LEAVE")) {
+            zsys_info ("[%s] peer left", zyre_event_peer_name (event));
+            self->peers--;
             //  Flash 3rd LED three times rapidly
             for (int repeat = 0; repeat < 3; repeat++) {
                 blink_led_on (self->led [2]);
@@ -164,6 +156,7 @@ s_execute_commands (self_t *self)
                 blink_led_on (self->led [1]);
                 zclock_sleep (500);
                 blink_led_off (self->led [1]);
+                zyre_whispers (self->zyre, zyre_event_peer_uuid (event), "%s", "OK");
             }
             else {
                 zsys_info ("System '%s' FAIL", command);
@@ -171,10 +164,51 @@ s_execute_commands (self_t *self)
                 blink_led_on (self->led [1]);
                 zclock_sleep (500);
                 blink_led_off (self->led [1]);
+                zyre_whispers (self->zyre, zyre_event_peer_uuid (event), "%s", "FAILED");
             }
             free (command);
         }
         zyre_event_destroy (&event);
+    }
+}
+
+
+static void
+s_broadcast_commands (self_t *self)
+{
+    while (!zsys_interrupted) {
+        char command [1024];
+        if (!fgets (command, 1024, stdin))
+            break;
+        //  Line ends in \n, which we need to discard
+        command [strlen (command) - 1] = 0;
+        zyre_shouts (self->zyre, "BLINK", "%s", command);
+
+        //  Wait for answers from peers
+        //  TODO: do this asynchronously
+        size_t answers = 0;
+        while (answers < self->peers) {
+            zyre_event_t *event = zyre_event_new (self->zyre);
+            if (!event)
+                break;              //  Interrupted
+            if (self->verbose)
+                zyre_event_print (event);
+
+            if (streq (zyre_event_type (event), "JOIN"))
+                self->peers++;
+            else
+            if (streq (zyre_event_type (event), "LEAVE"))
+                self->peers--;
+            else
+            if (streq (zyre_event_type (event), "WHISPER")) {
+                answers++;
+                zmsg_t *msg = zyre_event_msg (event);
+                char *answer = zmsg_popstr (msg);
+                printf ("%s: %s\n", zyre_event_peer_name (event), answer);
+                free (answer);
+            }
+            zyre_event_destroy (&event);
+        }
     }
 }
 
@@ -201,7 +235,7 @@ int main (int argc, char *argv [])
         if (self->console)
             s_broadcast_commands (self);
         else
-            s_execute_commands (self);
+            s_capture_commands (self);
     }
     //  Shutdown
     zyre_leave (self->zyre, "BLINK");
