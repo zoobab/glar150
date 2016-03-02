@@ -20,7 +20,7 @@ save.xml
 
 # Executables
 src/blink_selftest
-src/blink
+src/blink_shell
 src/blink_selftest
 *.exe
 *.out

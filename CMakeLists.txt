@@ -192,11 +192,11 @@ install(
 # executables
 ########################################################################
 add_executable(
-    blink
-    "${SOURCE_DIR}/src/blink.c"
+    blink_shell
+    "${SOURCE_DIR}/src/blink_shell.c"
 )
 target_link_libraries(
-    blink
+    blink_shell
     blink
     ${LIBZMQ_LIBRARIES}
     ${CZMQ_LIBRARIES}
@@ -204,7 +204,7 @@ target_link_libraries(
     ${OPTIONAL_LIBRARIES}
 )
 set_target_properties(
-    blink
+    blink_shell
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${SOURCE_DIR}/src"
 )
 add_executable(

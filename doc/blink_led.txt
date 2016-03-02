@@ -11,7 +11,7 @@ SYNOPSIS
 //  Create a new LED instance; the valid names are "wlan" (red), "lan" (green
 //  center), "wan" (green edge).
 BLINK_EXPORT blink_led_t *
-    blink_led_new (void);
+    blink_led_new (int index);
 
 //  Switch the LED on; returns 0 if successful, else -1.
 BLINK_EXPORT int
