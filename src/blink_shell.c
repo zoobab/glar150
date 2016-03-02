@@ -23,8 +23,8 @@ typedef struct {
     bool verbose;
     bool console;
     char *iface;
-    blink_led_t *led [3];
     zyre_t *zyre;
+    zactor_t *panel;            //  LED control panel
     size_t peers;               //  Number of peers
 } self_t;
 
@@ -61,6 +61,46 @@ s_parse_args (self_t *self, int argc, char *argv [])
     return 0;
 }
 
+static void
+led_panel (zsock_t *pipe, void *args)
+{
+    blink_led_t *led [3];
+    for (int index = 0; index < 3; index++)
+        led [index] = blink_led_new (index);
+
+    zsock_signal (pipe, 0);     //  Signal "ready" to caller
+    while (!zsys_interrupted) {
+        char *command = zstr_recv (pipe);
+        if (streq (command, "$TERM"))
+            break;
+        char *opcode = command;
+        blink_led_t *choice = NULL;
+        while (*opcode) {
+            if (isdigit (*opcode)) {
+                uint index = *opcode - '0';
+                assert (index < 3);
+                choice = led [index];
+            }
+            else
+            if (*opcode == 'X')
+                blink_led_on (choice);
+            else
+            if (*opcode == '-')
+                blink_led_off (choice);
+            else
+            if (*opcode == ',')
+                zclock_sleep (100);
+            else
+            if (*opcode == ';')
+                zclock_sleep (500);
+            opcode++;
+        }
+        free (command);
+    }
+    for (int index = 0; index < 3; index++)
+        blink_led_destroy (&led [index]);
+}
+
 
 static bool
 s_join_cluster (self_t *self)
@@ -83,9 +123,9 @@ s_join_cluster (self_t *self)
         printf ("\b%c", tick [current_led]);
         fflush (stdout);
 
-        blink_led_off (self->led [current_led]);
+        zstr_sendf (self->panel, "%c-", current_led + '0');
         current_led = (current_led + 1) % 3;
-        blink_led_on (self->led [current_led]);
+        zstr_sendf (self->panel, "%cX", current_led + '0');
 
         if (which == zyre_socket (self->zyre)) {
             zmsg_t *msg = zyre_recv (self->zyre);
@@ -98,12 +138,12 @@ s_join_cluster (self_t *self)
             zmsg_destroy (&msg);
         }
     }
-    blink_led_off (self->led [current_led]);
+    zstr_sendf (self->panel, "%c-", current_led + '0');
     if (zsys_interrupted)
         return false;
 
     //  Set first LED on permanently to show we're active
-    blink_led_on (self->led [0]);
+    zstr_send (self->panel, "0X");
     zsys_info ("blink_shell: attached to cluster");
     return true;
 }
@@ -113,7 +153,7 @@ static void
 s_capture_commands (self_t *self)
 {
     //  Wait for commands, and execute via /bin/sh
-    while (true) {
+    while (!zsys_interrupted) {
         zyre_event_t *event = zyre_event_new (self->zyre);
         if (!event)
             break;              //  Interrupted
@@ -123,25 +163,15 @@ s_capture_commands (self_t *self)
         if (streq (zyre_event_type (event), "JOIN")) {
             zsys_info ("[%s] peer joined", zyre_event_peer_name (event));
             self->peers++;
-            //  Flash 2nd LED three times rapidly
-            for (int repeat = 0; repeat < 3; repeat++) {
-                blink_led_on (self->led [1]);
-                zclock_sleep (100);
-                blink_led_off (self->led [1]);
-                zclock_sleep (100);
-            }
+            //  Flash LED 1 three times rapidly
+            zstr_send (self->panel, "1X,-,X,-,X,-");
         }
         else
         if (streq (zyre_event_type (event), "LEAVE")) {
             zsys_info ("[%s] peer left", zyre_event_peer_name (event));
             self->peers--;
-            //  Flash 3rd LED three times rapidly
-            for (int repeat = 0; repeat < 3; repeat++) {
-                blink_led_on (self->led [2]);
-                zclock_sleep (100);
-                blink_led_off (self->led [2]);
-                zclock_sleep (100);
-            }
+            //  Flash LED 2 three times rapidly
+            zstr_send (self->panel, "2X,-,X,-,X,-");
         }
         else
         if (streq (zyre_event_type (event), "SHOUT")) {
@@ -152,18 +182,14 @@ s_capture_commands (self_t *self)
 
             if (system (command) == 0) {
                 zsys_info ("System '%s' OK", command);
-                //  Flash 2nd LED once slowly
-                blink_led_on (self->led [1]);
-                zclock_sleep (500);
-                blink_led_off (self->led [1]);
+                //  Flash LED 1 once slowly
+                zstr_send (self->panel, "1X;-");
                 zyre_whispers (self->zyre, zyre_event_peer_uuid (event), "%s", "OK");
             }
             else {
                 zsys_info ("System '%s' FAIL", command);
-                //  Flash 3rd LED once slowly
-                blink_led_on (self->led [1]);
-                zclock_sleep (500);
-                blink_led_off (self->led [1]);
+                //  Flash LED 2 once slowly
+                zstr_send (self->panel, "2X;-");
                 zyre_whispers (self->zyre, zyre_event_peer_uuid (event), "%s", "FAILED");
             }
             free (command);
@@ -212,8 +238,8 @@ s_broadcast_commands (self_t *self)
     }
 }
 
-
-int main (int argc, char *argv [])
+int
+main (int argc, char *argv [])
 {
     self_t *self = (self_t *) zmalloc (sizeof (self_t));
     if (s_parse_args (self, argc, argv))
@@ -221,14 +247,15 @@ int main (int argc, char *argv [])
 
     //  Startup
     self->zyre = zyre_new (NULL);
-    for (int index = 0; index < 3; index++)
-        self->led [index] = blink_led_new (index);
     if (self->verbose)
         zyre_set_verbose (self->zyre);
     if (self->iface)
         zyre_set_interface (self->zyre, self->iface);
     zyre_start (self->zyre);
     zyre_join (self->zyre, "BLINK");
+
+    self->panel = zactor_new (led_panel, NULL);
+    assert (self->panel);
 
     bool ready = s_join_cluster (self);
     if (ready) {
@@ -241,8 +268,7 @@ int main (int argc, char *argv [])
     zyre_leave (self->zyre, "BLINK");
     zyre_stop (self->zyre);
     zyre_destroy (&self->zyre);
-    for (int index = 0; index < 3; index++)
-        blink_led_destroy (&self->led [index]);
+    zactor_destroy (&self->panel);
 
     free (self);
     return 0;
