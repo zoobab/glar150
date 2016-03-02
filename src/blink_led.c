@@ -38,7 +38,7 @@ blink_led_new (int index)
     assert (index >= 0 && index < 3);
     blink_led_t *self = (blink_led_t *) zmalloc (sizeof (blink_led_t));
     assert (self);
-    char *name [] = { "wlan", "lan", "wan" };
+    char *name [] = { "wan", "lan", "wlan" };
     self->device = zsys_sprintf (DEVICE_PATH, name [index]);
     //  Start with LED off
     blink_led_off (self);
