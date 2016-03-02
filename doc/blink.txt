@@ -1,4 +1,4 @@
-blink(1)
+blink(7)
 ========
 
 NAME

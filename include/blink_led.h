@@ -18,10 +18,13 @@ extern "C" {
 #endif
 
 //  @interface
-//  Create a new LED instance; the valid names are "wlan" (red), "lan" (green
-//  center), "wan" (green edge).
+//  Create a new LED instance. The index 0..2 matches LEDs from left to right.
 BLINK_EXPORT blink_led_t *
     blink_led_new (int index);
+
+//  Destroy the blink_led
+BLINK_EXPORT void
+    blink_led_destroy (blink_led_t **self_p);
 
 //  Switch the LED on; returns 0 if successful, else -1.
 BLINK_EXPORT int
@@ -31,9 +34,9 @@ BLINK_EXPORT int
 BLINK_EXPORT int
     blink_led_off (blink_led_t *self);
 
-//  Destroy the blink_led
+//  Enable/disable tracing of LED activity, especially errors
 BLINK_EXPORT void
-    blink_led_destroy (blink_led_t **self_p);
+    blink_set_verbose (blink_led_t *self, bool verbose);
 
 //  Self test of this class
 BLINK_EXPORT void

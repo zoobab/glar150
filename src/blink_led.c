@@ -25,19 +25,20 @@
 
 struct _blink_led_t {
     char *device;               //  Path to LED device
+    bool verbose;               //  Do we report errors or not?
 };
 
 
 //  --------------------------------------------------------------------------
-//  Create a new LED instance. The index matches the LEDs from left to right.
+//  Create a new LED instance. The index 0..2 matches LEDs from left to right.
 
 blink_led_t *
 blink_led_new (int index)
 {
-    assert (index > 0 && index <= 3);
+    assert (index >= 0 && index < 3);
     blink_led_t *self = (blink_led_t *) zmalloc (sizeof (blink_led_t));
     assert (self);
-    char *name [] = { "", "wlan", "lan", "wan" };
+    char *name [] = { "wlan", "lan", "wan" };
     self->device = zsys_sprintf (DEVICE_PATH, name [index]);
     //  Start with LED off
     blink_led_off (self);
@@ -72,7 +73,8 @@ blink_led_on (blink_led_t *self)
 
     int handle = open (self->device, O_WRONLY);
     if (handle == -1 || write (handle, "1", 1) != 1) {
-        zsys_error ("could not write to %s", self->device);
+        if (self->verbose)
+            zsys_error ("could not write to %s", self->device);
         return -1;
     }
     close (handle);
@@ -91,11 +93,23 @@ blink_led_off (blink_led_t *self)
 
     int handle = open (self->device, O_WRONLY);
     if (handle == -1 || write (handle, "0", 1) != 1) {
-        zsys_error ("could not write to %s", self->device);
+        if (self->verbose)
+            zsys_error ("could not write to %s", self->device);
         return -1;
     }
     close (handle);
     return 0;
+}
+
+
+//  --------------------------------------------------------------------------
+//  Enable/disable tracing of LED activity, especially errors
+
+void
+blink_set_verbose (blink_led_t *self, bool verbose)
+{
+    assert (self);
+    self->verbose = verbose;
 }
 
 

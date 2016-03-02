@@ -415,15 +415,15 @@ AM_CONDITIONAL(ON_GNU, test "x$blink_on_gnu" = "xyes")
 AM_CONDITIONAL(INSTALL_MAN, test "x$blink_install_man" = "xyes")
 AM_CONDITIONAL(BUILD_DOC, test "x$blink_build_doc" = "xyes")
 
-# Check for blink intent
-AC_ARG_ENABLE([blink],
-    AS_HELP_STRING([--enable-blink],
-        [Compile and install 'blink' [default=yes]]),
-    [enable_blink=$enableval],
-    [enable_blink=yes])
+# Check for blink_shell intent
+AC_ARG_ENABLE([blink_shell],
+    AS_HELP_STRING([--enable-blink_shell],
+        [Compile and install 'blink_shell' [default=yes]]),
+    [enable_blink_shell=$enableval],
+    [enable_blink_shell=yes])
 
-AM_CONDITIONAL([ENABLE_BLINK], [test x$enable_blink != xno])
-AM_COND_IF([ENABLE_BLINK], [AC_MSG_NOTICE([ENABLE_BLINK defined])])
+AM_CONDITIONAL([ENABLE_BLINK_SHELL], [test x$enable_blink_shell != xno])
+AM_COND_IF([ENABLE_BLINK_SHELL], [AC_MSG_NOTICE([ENABLE_BLINK_SHELL defined])])
 
 # Check for blink_selftest intent
 AC_ARG_ENABLE([blink_selftest],

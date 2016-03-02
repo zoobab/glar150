@@ -50,12 +50,12 @@ endif
 
 src_libblink_la_LIBADD = ${project_libs}
 
-if ENABLE_BLINK
-bin_PROGRAMS += src/blink
-src_blink_CPPFLAGS = ${AM_CPPFLAGS}
-src_blink_LDADD = ${program_libs}
-src_blink_SOURCES = src/blink.c
-endif #ENABLE_BLINK
+if ENABLE_BLINK_SHELL
+bin_PROGRAMS += src/blink_shell
+src_blink_shell_CPPFLAGS = ${AM_CPPFLAGS}
+src_blink_shell_LDADD = ${program_libs}
+src_blink_shell_SOURCES = src/blink_shell.c
+endif #ENABLE_BLINK_SHELL
 
 if ENABLE_BLINK_SELFTEST
 check_PROGRAMS += src/blink_selftest
@@ -67,7 +67,7 @@ endif #ENABLE_BLINK_SELFTEST
 
 # define custom target for all products of /src
 src:
-	src/blink \
+	src/blink_shell \
 	src/blink_selftest \
 	src/libblink.la
 

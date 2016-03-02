@@ -57,6 +57,7 @@ typedef struct _blink_led_t blink_led_t;
 #define BLINK_LED_T_DEFINED
 #endif // BLINK_BUILD_DRAFT_API
 
+
 //  Public classes, each with its own header file
 #ifdef BLINK_BUILD_DRAFT_API
 #include "blink_led.h"

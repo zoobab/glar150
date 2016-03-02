@@ -5,6 +5,7 @@
     repository = "git://github.com/codejockey/blink.git">
     <include filename = "license.xml" />
     <use project = "zyre" />
-    <main name = "blink" />
+
+    <main name = "blink_shell">Blink shell</main>
     <class name = "blink_led">Control server LEDs</class>
 </project>
