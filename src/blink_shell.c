@@ -169,9 +169,7 @@ s_play_catch (self_t *self)
     }
     //  Find first peer with UUID greater than ours
     char *player = (char *) zlist_first (self->players);
-    zsys_info ("START: %s", player);
     while (player) {
-        zsys_info ("COMPARE: %s <> %s", player, self->uuid);
         if (strcmp (player, self->uuid) > 0)
             break;
         player = (char *) zlist_next (self->players);
@@ -181,10 +179,8 @@ s_play_catch (self_t *self)
         player = (char *) zlist_first (self->players);
 
     //  Send if we have another player, else drop the ball
-    if (player) {
-        printf ("SEND TO: %s", player);
+    if (player)
         zyre_whispers (self->zyre, player, "%s", "catch");
-    }
 }
 
 static void
@@ -232,6 +228,7 @@ s_capture_commands (self_t *self)
                        zyre_event_peer_name (event), zyre_event_group (event));
             zmsg_t *msg = zyre_event_msg (event);
             char *command = zmsg_popstr (msg);
+            zsys_info ("Run command '%s'", command);
             if (streq (command, "catch"))
                 s_play_catch (self);
             else
@@ -328,11 +325,13 @@ main (int argc, char *argv [])
     //  Startup
     self->zyre = zyre_new (NULL);
     self->uuid = zyre_uuid (self->zyre);
-    zsys_info ("OWN UUID=%s", self->uuid);
     if (self->verbose)
         zyre_set_verbose (self->zyre);
     if (self->iface)
         zyre_set_interface (self->zyre, self->iface);
+    else
+        zyre_set_interface (self->zyre, "wlan0");
+
     zyre_start (self->zyre);
     zyre_join (self->zyre, "BLINK");
 
