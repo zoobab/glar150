@@ -23,9 +23,11 @@ typedef struct {
     bool verbose;
     bool console;
     char *iface;
+    const char *uuid;           //  Own UUID
     zyre_t *zyre;
     zactor_t *panel;            //  LED control panel
     size_t peers;               //  Number of peers
+    zlist_t *players;           //  Players in our catch team
 } self_t;
 
 static int
@@ -65,7 +67,8 @@ static void
 led_panel (zsock_t *pipe, void *args)
 {
     blink_led_t *led [3];
-    for (int index = 0; index < 3; index++)
+    int index;
+    for (index = 0; index < 3; index++)
         led [index] = blink_led_new (index);
 
     zsock_signal (pipe, 0);     //  Signal "ready" to caller
@@ -82,11 +85,15 @@ led_panel (zsock_t *pipe, void *args)
                 choice = led [index];
             }
             else
-            if (*opcode == 'X')
+            if (*opcode == 'X') {
+                assert (choice);
                 blink_led_on (choice);
+            }
             else
-            if (*opcode == '-')
+            if (*opcode == '-') {
+                assert (choice);
                 blink_led_off (choice);
+            }
             else
             if (*opcode == ',')
                 zclock_sleep (100);
@@ -97,7 +104,7 @@ led_panel (zsock_t *pipe, void *args)
         }
         free (command);
     }
-    for (int index = 0; index < 3; index++)
+    for (index = 0; index < 3; index++)
         blink_led_destroy (&led [index]);
 }
 
@@ -149,6 +156,37 @@ s_join_cluster (self_t *self)
 }
 
 
+//  We flash our light once, then pass the ball on
+static void
+s_play_catch (self_t *self)
+{
+    //  Flash LED 1 three times rapidly, and blink light
+    if (system ("blink 1 0.5") == 0)
+        zstr_send (self->panel, "1X,-,X,-,X,-,");
+    else {
+        sleep (1);
+        puts ("BLINK!");
+    }
+    //  Find first peer with UUID greater than ours
+    char *player = (char *) zlist_first (self->players);
+    zsys_info ("START: %s", player);
+    while (player) {
+        zsys_info ("COMPARE: %s <> %s", player, self->uuid);
+        if (strcmp (player, self->uuid) > 0)
+            break;
+        player = (char *) zlist_next (self->players);
+    }
+    //  Wrap around to first if needed
+    if (!player)
+        player = (char *) zlist_first (self->players);
+
+    //  Send if we have another player, else drop the ball
+    if (player) {
+        printf ("SEND TO: %s", player);
+        zyre_whispers (self->zyre, player, "%s", "catch");
+    }
+}
+
 static void
 s_capture_commands (self_t *self)
 {
@@ -161,39 +199,69 @@ s_capture_commands (self_t *self)
             zyre_event_print (event);
 
         if (streq (zyre_event_type (event), "JOIN")) {
-            zsys_info ("[%s] peer joined", zyre_event_peer_name (event));
-            self->peers++;
-            //  Flash LED 1 three times rapidly
-            zstr_send (self->panel, "1X,-,X,-,X,-");
+            if (streq (zyre_event_group (event), "BLINK")) {
+                zsys_info ("[%s] peer joined %s",
+                           zyre_event_peer_name (event),
+                           zyre_event_group (event));
+                self->peers++;
+                //  Flash LED 1 three times rapidly
+                zstr_send (self->panel, "1X,-,X,-,X,-,");
+            }
+            else
+            if (streq (zyre_event_group (event), "CATCH")) {
+                //  Add to list of players
+                zlist_append (self->players, (void *) zyre_event_peer_uuid (event));
+                zlist_sort (self->players, NULL);
+            }
         }
         else
         if (streq (zyre_event_type (event), "LEAVE")) {
-            zsys_info ("[%s] peer left", zyre_event_peer_name (event));
-            self->peers--;
-            //  Flash LED 2 three times rapidly
-            zstr_send (self->panel, "2X,-,X,-,X,-");
+            if (streq (zyre_event_group (event), "BLINK")) {
+                zsys_info ("[%s] peer left", zyre_event_peer_name (event));
+                self->peers--;
+                //  Flash LED 2 three times rapidly
+                zstr_send (self->panel, "2X,-,X,-,X,-,");
+            }
+            else
+            if (streq (zyre_event_group (event), "CATCH"))
+                zlist_remove (self->players, (void *) zyre_event_peer_uuid (event));
         }
         else
         if (streq (zyre_event_type (event), "SHOUT")) {
-            zsys_info ("[%s](%s) received ping (SHOUT)",
+            zsys_info ("[%s](%s) received SHOUT",
                        zyre_event_peer_name (event), zyre_event_group (event));
             zmsg_t *msg = zyre_event_msg (event);
             char *command = zmsg_popstr (msg);
-
+            if (streq (command, "catch"))
+                s_play_catch (self);
+            else
             if (system (command) == 0) {
                 zsys_info ("System '%s' OK", command);
                 //  Flash LED 1 once slowly
-                zstr_send (self->panel, "1X;-");
+                zstr_send (self->panel, "1X;-;");
                 zyre_whispers (self->zyre, zyre_event_peer_uuid (event), "%s", "OK");
             }
             else {
                 zsys_info ("System '%s' FAIL", command);
                 //  Flash LED 2 once slowly
-                zstr_send (self->panel, "2X;-");
+                zstr_send (self->panel, "2X;-;");
                 zyre_whispers (self->zyre, zyre_event_peer_uuid (event), "%s", "FAILED");
             }
             free (command);
         }
+        else
+        if (streq (zyre_event_type (event), "WHISPER")) {
+            zsys_info ("[%s] received WHISPER", zyre_event_peer_name (event));
+            zmsg_t *msg = zyre_event_msg (event);
+            char *command = zmsg_popstr (msg);
+            if (streq (command, "catch"))
+                s_play_catch (self);
+            free (command);
+        }
+        else
+        if (streq (zyre_event_type (event), "EXIT"))
+            zlist_remove (self->players, (void *) zyre_event_peer_uuid (event));
+
         zyre_event_destroy (&event);
     }
 }
@@ -207,8 +275,20 @@ s_broadcast_commands (self_t *self)
         if (!fgets (command, 1024, stdin))
             break;
         //  Line ends in \n, which we need to discard
+
         command [strlen (command) - 1] = 0;
-        zyre_shouts (self->zyre, "BLINK", "%s", command);
+        if (streq (command, "catch")) {
+            //  Send to any peer, it doesn't matter which
+            zlist_t *peers = zyre_peers (self->zyre);
+            if (zlist_size (peers)) {
+                zyre_whispers (self->zyre, (char *) zlist_first (peers), "%s", "catch");
+                zlist_destroy (&peers);
+            }
+            else
+                zsys_error ("there's no-one to play catch...");
+        }
+        else
+            zyre_shouts (self->zyre, "BLINK", "%s", command);
 
         //  Wait for answers from peers
         //  TODO: do this asynchronously
@@ -247,6 +327,8 @@ main (int argc, char *argv [])
 
     //  Startup
     self->zyre = zyre_new (NULL);
+    self->uuid = zyre_uuid (self->zyre);
+    zsys_info ("OWN UUID=%s", self->uuid);
     if (self->verbose)
         zyre_set_verbose (self->zyre);
     if (self->iface)
@@ -254,6 +336,11 @@ main (int argc, char *argv [])
     zyre_start (self->zyre);
     zyre_join (self->zyre, "BLINK");
 
+    if (!self->console) {
+        self->players = zlist_new ();
+        zlist_autofree (self->players);
+        zyre_join (self->zyre, "CATCH");
+    }
     self->panel = zactor_new (led_panel, NULL);
     assert (self->panel);
 
@@ -265,10 +352,14 @@ main (int argc, char *argv [])
             s_capture_commands (self);
     }
     //  Shutdown
+    if (!self->console)
+        zyre_leave (self->zyre, "CATCH");
+
     zyre_leave (self->zyre, "BLINK");
     zyre_stop (self->zyre);
     zyre_destroy (&self->zyre);
     zactor_destroy (&self->panel);
+    zlist_destroy (&self->players);
 
     free (self);
     return 0;
