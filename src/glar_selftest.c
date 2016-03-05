@@ -1,5 +1,5 @@
 /*  =========================================================================
-    blink_selftest.c - run selftests
+    glar_selftest.c - run selftests
 
     Runs all selftests.
 
@@ -18,7 +18,7 @@
     =========================================================================
 */
 
-#include "blink_classes.h"
+#include "glar_classes.h"
 
 typedef struct {
     const char *testname;
@@ -27,9 +27,9 @@ typedef struct {
 
 static test_item_t
 all_tests [] = {
-#ifdef BLINK_BUILD_DRAFT_API
-    { "blink_led", blink_led_test },
-#endif // BLINK_BUILD_DRAFT_API
+#ifdef GLAR_BUILD_DRAFT_API
+    { "glar_panel", glar_panel_test },
+#endif // GLAR_BUILD_DRAFT_API
     {0, 0}          //  Sentinel
 };
 
@@ -57,7 +57,7 @@ static void
 test_runall (bool verbose)
 {
     test_item_t *item;
-    printf ("Running blink selftests...\n");
+    printf ("Running glar150 selftests...\n");
     for (item = all_tests; item->test; item++)
         item->test (verbose);
 
@@ -73,7 +73,7 @@ main (int argc, char **argv)
     for (argn = 1; argn < argc; argn++) {
         if (streq (argv [argn], "--help")
         ||  streq (argv [argn], "-h")) {
-            puts ("blink_selftest.c [options] ...");
+            puts ("glar_selftest.c [options] ...");
             puts ("  --verbose / -v         verbose test output");
             puts ("  --number / -n          report number of tests");
             puts ("  --list / -l            list all tests");
@@ -94,7 +94,7 @@ main (int argc, char **argv)
         if (streq (argv [argn], "--list")
         ||  streq (argv [argn], "-l")) {
             puts ("Available tests:");
-            puts ("    blink_led");
+            puts ("    glar_panel");
             return 0;
         }
         else
@@ -125,7 +125,7 @@ main (int argc, char **argv)
         }
     }
     if (test) {
-        printf ("Running blink test '%s'...\n", test->testname);
+        printf ("Running glar150 test '%s'...\n", test->testname);
         test->test (verbose);
     }
     else

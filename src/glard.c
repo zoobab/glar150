@@ -23,7 +23,6 @@ typedef struct {
     bool verbose;
     bool console;
     char *iface;
-    const char *uuid;           //  Own UUID
     zyre_t *zyre;
     zactor_t *panel;            //  LED control panel
     size_t peers;               //  Number of peers
@@ -33,11 +32,14 @@ typedef struct {
 static int
 s_parse_args (self_t *self, int argc, char *argv [])
 {
+    //  Defaults
+    self->iface = "wlan0";
+
     int argn;
     for (argn = 1; argn < argc; argn++) {
         if (streq (argv [argn], "--help")
         ||  streq (argv [argn], "-h")) {
-            puts ("monitor [options] ...");
+            puts ("blink_shell [options] ...");
             puts ("  --help / -h            this help");
             puts ("  --verbose / -v         verbose test output");
             puts ("  --interface / -i       use this interface");
@@ -61,51 +63,6 @@ s_parse_args (self_t *self, int argc, char *argv [])
         }
     }
     return 0;
-}
-
-static void
-led_panel (zsock_t *pipe, void *args)
-{
-    blink_led_t *led [3];
-    int index;
-    for (index = 0; index < 3; index++)
-        led [index] = blink_led_new (index);
-
-    zsock_signal (pipe, 0);     //  Signal "ready" to caller
-    while (!zsys_interrupted) {
-        char *command = zstr_recv (pipe);
-        if (streq (command, "$TERM"))
-            break;
-        char *opcode = command;
-        blink_led_t *choice = NULL;
-        while (*opcode) {
-            if (isdigit (*opcode)) {
-                uint index = *opcode - '0';
-                assert (index < 3);
-                choice = led [index];
-            }
-            else
-            if (*opcode == 'X') {
-                assert (choice);
-                blink_led_on (choice);
-            }
-            else
-            if (*opcode == '-') {
-                assert (choice);
-                blink_led_off (choice);
-            }
-            else
-            if (*opcode == ',')
-                zclock_sleep (100);
-            else
-            if (*opcode == ';')
-                zclock_sleep (500);
-            opcode++;
-        }
-        free (command);
-    }
-    for (index = 0; index < 3; index++)
-        blink_led_destroy (&led [index]);
 }
 
 
@@ -170,7 +127,7 @@ s_play_catch (self_t *self)
     //  Find first peer with UUID greater than ours
     char *player = (char *) zlist_first (self->players);
     while (player) {
-        if (strcmp (player, self->uuid) > 0)
+        if (strcmp (player, zyre_uuid (self->zyre)) > 0)
             break;
         player = (char *) zlist_next (self->players);
     }
@@ -324,14 +281,9 @@ main (int argc, char *argv [])
 
     //  Startup
     self->zyre = zyre_new (NULL);
-    self->uuid = zyre_uuid (self->zyre);
     if (self->verbose)
         zyre_set_verbose (self->zyre);
-    if (self->iface)
-        zyre_set_interface (self->zyre, self->iface);
-    else
-        zyre_set_interface (self->zyre, "wlan0");
-
+    zyre_set_interface (self->zyre, self->iface);
     zyre_start (self->zyre);
     zyre_join (self->zyre, "BLINK");
 
