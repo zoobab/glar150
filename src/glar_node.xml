@@ -3,7 +3,6 @@
 <state name = "start">
     <event name = "console" next = "as console">
         <action name = "join network as console" />
-        <action name = "start console actor" />
         <action name = "wait for activity" />
     </event>
     <event name = "robot" next = "as robot">
@@ -26,6 +25,7 @@
 <state name = "as robot" inherit = "defaults">
     <event name = "shout">
         <action name = "execute the command" />
+        <action name = "show at rest sequence" />
         <action name = "wait for activity" />
     </event>
 </state>
@@ -36,10 +36,12 @@
     </event>
     <event name = "join">
         <action name = "signal peer joined" />
+        <action name = "show at rest sequence" />
         <action name = "wait for activity" />
     </event>
     <event name = "leave">
         <action name = "signal peer left" />
+        <action name = "show at rest sequence" />
         <action name = "wait for activity" />
     </event>
     <event name = "other">
