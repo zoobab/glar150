@@ -1,5 +1,9 @@
 # Put your custom commands here that should be executed once
 # the system init finished. By default this file does nothing.
 
+# activate the Button as a normal GPIO
+rmmod gpio_button_hotplug
+echo 8 > /sys/class/gpio/export
+
 /root/monitorgw/daemon.sh &
 exit 0
