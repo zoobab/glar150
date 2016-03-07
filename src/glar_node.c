@@ -113,6 +113,7 @@ glar_node_destroy (glar_node_t **self_p)
         zyre_destroy (&self->zyre);
         zactor_destroy (&self->panel);
         zactor_destroy (&self->console);
+        zactor_destroy (&self->button);
         zpoller_destroy (&self->poller);
         zmsg_destroy (&self->msg);
         zyre_event_destroy (&self->event);
