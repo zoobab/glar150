@@ -1,6 +1,6 @@
 #!/bin/ash
 
-GW_IP="192.168.2.132"
+GW_IP="192.168.1.1"
 
 ping -q -W1 -c2 ${GW_IP} > /dev/null
  
