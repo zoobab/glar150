@@ -60,6 +60,7 @@ s_button_actor (zsock_t *pipe, void *args)
         if (chunk) {
             char *data = (char *) zchunk_data (chunk);
             data [zchunk_size (chunk)] = 0;
+            puts (data);
             if (strstr (data, "gpio-8   (BTN_8               ) in  lo")) {
                 if (button_value == 0)
                     zstr_send (pipe, "ON");
