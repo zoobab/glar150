@@ -2,7 +2,7 @@
     glar150 - generated layer of public API
 
     Copyright (c) the Contributors as noted in the AUTHORS file.       
-    This file is part of the Blink Project.                            
+    This file is part of the Glar150 Project.                          
                                                                        
     This Source Code Form is subject to the terms of the Mozilla Public
     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -53,6 +53,8 @@
 //  These classes are stable or legacy and built in all releases
 //  Draft classes are by default not built in stable releases
 #ifdef GLAR_BUILD_DRAFT_API
+typedef struct _glar_node_t glar_node_t;
+#define GLAR_NODE_T_DEFINED
 typedef struct _glar_panel_t glar_panel_t;
 #define GLAR_PANEL_T_DEFINED
 #endif // GLAR_BUILD_DRAFT_API
@@ -60,6 +62,7 @@ typedef struct _glar_panel_t glar_panel_t;
 
 //  Public classes, each with its own header file
 #ifdef GLAR_BUILD_DRAFT_API
+#include "glar_node.h"
 #include "glar_panel.h"
 #endif // GLAR_BUILD_DRAFT_API
 

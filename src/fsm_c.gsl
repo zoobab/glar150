@@ -16,7 +16,7 @@
 #   versions of this document, generate a new globally unique ID.
 
 class.title ?= "No title"
-class.package_dir ?= "../include"
+class.package_dir ?= "."
 
 #   Resolve includes
 

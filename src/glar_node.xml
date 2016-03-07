@@ -1,0 +1,53 @@
+<class name = "glar_node" script = "fsm_c">
+
+<state name = "start">
+    <event name = "console" next = "as console">
+        <action name = "join network as console" />
+        <action name = "start console actor" />
+        <action name = "wait for activity" />
+    </event>
+    <event name = "robot" next = "as robot">
+        <action name = "join network as robot" />
+        <action name = "wait for activity" />
+    </event>
+</state>
+
+<state name = "as console" inherit = "defaults">
+    <event name = "console command">
+        <action name = "shout command to robots" />
+        <action name = "wait for activity" />
+    </event>
+    <event name = "whisper">
+        <action name = "print command results" />
+        <action name = "wait for activity" />
+    </event>
+</state>
+
+<state name = "as robot" inherit = "defaults">
+    <event name = "shout">
+        <action name = "execute the command" />
+        <action name = "wait for activity" />
+    </event>
+</state>
+
+<state name = "defaults">
+    <event name = "finished">
+        <action name = "leave network" />
+    </event>
+    <event name = "join">
+        <action name = "signal peer joined" />
+        <action name = "wait for activity" />
+    </event>
+    <event name = "leave">
+        <action name = "signal peer left" />
+        <action name = "wait for activity" />
+    </event>
+    <event name = "other">
+        <action name = "wait for activity" />
+    </event>
+    <event name = "*">
+        <action name = "wait for activity" />
+    </event>
+</state>
+
+</class>

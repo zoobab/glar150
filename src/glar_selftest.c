@@ -5,7 +5,7 @@
 
     -------------------------------------------------------------------------
     Copyright (c) the Contributors as noted in the AUTHORS file.       
-    This file is part of the Blink Project.                            
+    This file is part of the Glar150 Project.                          
                                                                        
     This Source Code Form is subject to the terms of the Mozilla Public
     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -28,6 +28,7 @@ typedef struct {
 static test_item_t
 all_tests [] = {
 #ifdef GLAR_BUILD_DRAFT_API
+    { "glar_node", glar_node_test },
     { "glar_panel", glar_panel_test },
 #endif // GLAR_BUILD_DRAFT_API
     {0, 0}          //  Sentinel
@@ -87,13 +88,14 @@ main (int argc, char **argv)
         else
         if (streq (argv [argn], "--number")
         ||  streq (argv [argn], "-n")) {
-            puts ("1");
+            puts ("2");
             return 0;
         }
         else
         if (streq (argv [argn], "--list")
         ||  streq (argv [argn], "-l")) {
             puts ("Available tests:");
+            puts ("    glar_node");
             puts ("    glar_panel");
             return 0;
         }

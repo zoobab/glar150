@@ -2,8 +2,8 @@
     glar_panel - LED panel controller
 
     Copyright (c) the Contributors as noted in the AUTHORS file.       
-    This file is part of the Blink Project.                            
-                                                                       
+    This file is part of the Glar150 Project.
+
     This Source Code Form is subject to the terms of the Mozilla Public
     License, v. 2.0. If a copy of the MPL was not distributed with this
     file, You can obtain one at http://mozilla.org/MPL/2.0/.           
@@ -31,16 +31,6 @@ extern "C" {
 //  Enable verbose logging of commands and activity:
 //
 //      zstr_send (glar_panel, "VERBOSE");
-//      zsock_wait (glar_panel);
-//
-//  Start glar_panel actor.
-//
-//      zstr_sendx (glar_panel, "START", NULL);
-//      zsock_wait (glar_panel);
-//
-//  Stop glar_panel actor.
-//
-//      zstr_sendx (glar_panel, "STOP", NULL);
 //      zsock_wait (glar_panel);
 //
 //  This is the glar_panel constructor as a zactor_fn;

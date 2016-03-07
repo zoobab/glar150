@@ -116,6 +116,7 @@ set (glar_headers
 
 IF (ENABLE_DRAFTS)
     list(APPEND glar_headers
+        include/glar_node.h
         include/glar_panel.h
     )
 ENDIF (ENABLE_DRAFTS)
@@ -132,6 +133,7 @@ set (glar_sources
 
 IF (ENABLE_DRAFTS)
     list (APPEND glar_sources
+        src/glar_node.c
         src/glar_panel.c
     )
 ENDIF (ENABLE_DRAFTS)
@@ -227,6 +229,7 @@ set(TEST_CLASSES
 
 IF (ENABLE_DRAFTS)
     list (APPEND TEST_CLASSES
+    glar_node
     glar_panel
     )
 ENDIF (ENABLE_DRAFTS)

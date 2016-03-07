@@ -7,5 +7,10 @@
     <use project = "zyre" />
 
     <main name = "glard">Glar150 daemon</main>
+
+    <class name = "glar_node">Glar150 service</class>
+    <model name = "glar_node">Glar150 service FSM</model>
+
     <actor name = "glar_panel">LED panel controller</actor>
+    <model name = "glar_panel">LED panel controller FSM</model>
 </project>
