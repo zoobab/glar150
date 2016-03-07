@@ -47,6 +47,14 @@
     <event name = "other">
         <action name = "wait for activity" />
     </event>
+    <event name = "button on">
+        <action name = "signal button on" />
+        <action name = "show at rest sequence" />
+    </event>
+    <event name = "button off">
+        <action name = "signal button off" />
+        <action name = "show at rest sequence" />
+    </event>
     <event name = "*">
         <action name = "wait for activity" />
     </event>
