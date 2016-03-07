@@ -1,0 +1,26 @@
+glard(1)
+========
+
+NAME
+----
+glard - Glar150 daemon
+
+SYNOPSIS
+--------
+----
+Please add @interface section in ../src/glard.c.
+----
+
+DESCRIPTION
+-----------
+
+glard - Glar150 daemon
+
+Please add @discuss section in ../src/glard.c.
+
+EXAMPLE
+-------
+.From glard_test method
+----
+Please add @selftest section in ../src/glard.c.
+----

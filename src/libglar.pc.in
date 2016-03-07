@@ -8,13 +8,13 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: libblink
-Description: Blinken Lichten
+Name: libglar
+Description: GL-AR150 demo using Zyre
 Version: @VERSION@
 
 Requires:libzmq libczmq libzyre
 
-Libs: -L${libdir} -lblink
+Libs: -L${libdir} -lglar
 Cflags: -I${includedir} @pkg_config_defines@
 
 ################################################################################

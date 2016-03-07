@@ -1,8 +1,8 @@
 /*  =========================================================================
-    blink_classes - private header file
+    glar_classes - private header file
 
     Copyright (c) the Contributors as noted in the AUTHORS file.       
-    This file is part of the Blink Project.                            
+    This file is part of the Glar150 Project.                          
                                                                        
     This Source Code Form is subject to the terms of the Mozilla Public
     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,14 +14,14 @@
     =========================================================================
 */
 
-#ifndef BLINK_CLASSES_H_INCLUDED
-#define BLINK_CLASSES_H_INCLUDED
+#ifndef GLAR_CLASSES_H_INCLUDED
+#define GLAR_CLASSES_H_INCLUDED
 
 //  Platform definitions, must come first
 #include "platform.h"
 
 //  External API
-#include "../include/blink.h"
+#include "../include/glar150.h"
 
 //  Internal API
 

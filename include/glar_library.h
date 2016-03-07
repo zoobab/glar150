@@ -1,8 +1,8 @@
 /*  =========================================================================
-    blink - generated layer of public API
+    glar150 - generated layer of public API
 
     Copyright (c) the Contributors as noted in the AUTHORS file.       
-    This file is part of the Blink Project.                            
+    This file is part of the Glar150 Project.                          
                                                                        
     This Source Code Form is subject to the terms of the Mozilla Public
     License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,53 +15,56 @@
     =========================================================================
 */
 
-#ifndef BLINK_LIBRARY_H_INCLUDED
-#define BLINK_LIBRARY_H_INCLUDED
+#ifndef GLAR_LIBRARY_H_INCLUDED
+#define GLAR_LIBRARY_H_INCLUDED
 
 //  Set up environment for the application
 
 //  External dependencies
 #include <zyre.h>
 
-//  BLINK version macros for compile-time API detection
-#define BLINK_VERSION_MAJOR 0
-#define BLINK_VERSION_MINOR 0
-#define BLINK_VERSION_PATCH 0
+//  GLAR version macros for compile-time API detection
+#define GLAR_VERSION_MAJOR 0
+#define GLAR_VERSION_MINOR 0
+#define GLAR_VERSION_PATCH 0
 
-#define BLINK_MAKE_VERSION(major, minor, patch) \
+#define GLAR_MAKE_VERSION(major, minor, patch) \
     ((major) * 10000 + (minor) * 100 + (patch))
-#define BLINK_VERSION \
-    BLINK_MAKE_VERSION(BLINK_VERSION_MAJOR, BLINK_VERSION_MINOR, BLINK_VERSION_PATCH)
+#define GLAR_VERSION \
+    GLAR_MAKE_VERSION(GLAR_VERSION_MAJOR, GLAR_VERSION_MINOR, GLAR_VERSION_PATCH)
 
 #if defined (__WINDOWS__)
-#   if defined BLINK_STATIC
-#       define BLINK_EXPORT
-#   elif defined BLINK_EXPORTS
-#       define BLINK_EXPORT __declspec(dllexport)
+#   if defined GLAR_STATIC
+#       define GLAR_EXPORT
+#   elif defined GLAR_EXPORTS
+#       define GLAR_EXPORT __declspec(dllexport)
 #   else
-#       define BLINK_EXPORT __declspec(dllimport)
+#       define GLAR_EXPORT __declspec(dllimport)
 #   endif
 #else
-#   define BLINK_EXPORT
+#   define GLAR_EXPORT
 #endif
 
 //  Project has no stable classes, so we build the draft API
-#undef  BLINK_BUILD_DRAFT_API
-#define BLINK_BUILD_DRAFT_API
+#undef  GLAR_BUILD_DRAFT_API
+#define GLAR_BUILD_DRAFT_API
 
 //  Opaque class structures to allow forward references
 //  These classes are stable or legacy and built in all releases
 //  Draft classes are by default not built in stable releases
-#ifdef BLINK_BUILD_DRAFT_API
-typedef struct _blink_led_t blink_led_t;
-#define BLINK_LED_T_DEFINED
-#endif // BLINK_BUILD_DRAFT_API
+#ifdef GLAR_BUILD_DRAFT_API
+typedef struct _glar_node_t glar_node_t;
+#define GLAR_NODE_T_DEFINED
+typedef struct _glar_panel_t glar_panel_t;
+#define GLAR_PANEL_T_DEFINED
+#endif // GLAR_BUILD_DRAFT_API
 
 
 //  Public classes, each with its own header file
-#ifdef BLINK_BUILD_DRAFT_API
-#include "blink_led.h"
-#endif // BLINK_BUILD_DRAFT_API
+#ifdef GLAR_BUILD_DRAFT_API
+#include "glar_node.h"
+#include "glar_panel.h"
+#endif // GLAR_BUILD_DRAFT_API
 
 #endif
 /*

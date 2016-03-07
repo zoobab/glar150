@@ -19,9 +19,8 @@ save.xml
 *.lo
 
 # Executables
-src/blink_selftest
-src/blink_shell
-src/blink_selftest
+src/glar_selftest
+src/glard
 *.exe
 *.out
 *.app

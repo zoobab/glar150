@@ -1,11 +1,16 @@
 <project 
-    name = "Blink" description = "Blinken Lichten"
-    prefix = "blink"
+    name = "Glar150" description = "GL-AR150 demo using Zyre"
+    prefix = "glar"
     script = "zproject.gsl"
-    repository = "git://github.com/codejockey/blink.git">
+    repository = "git://github.com/codejockey/glar150.git">
     <include filename = "license.xml" />
     <use project = "zyre" />
 
-    <main name = "blink_shell">Blink shell</main>
-    <class name = "blink_led">Control server LEDs</class>
+    <main name = "glard">Glar150 daemon</main>
+
+    <class name = "glar_node">Glar150 service</class>
+    <model name = "glar_node">Glar150 service FSM</model>
+
+    <actor name = "glar_panel">LED panel controller</actor>
+    <model name = "glar_panel">LED panel controller FSM</model>
 </project>

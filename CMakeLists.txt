@@ -7,7 +7,7 @@
 # Project setup
 ########################################################################
 cmake_minimum_required(VERSION 2.8)
-project(blink)
+project(glar150)
 enable_language(C)
 enable_testing()
 
@@ -16,7 +16,10 @@ set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 ########################################################################
 # options
 ########################################################################
-ADD_DEFINITIONS (-DBLINK_BUILD_DRAFT_API)
+OPTION (ENABLE_DRAFTS "Build and install draft classes and methods" ON)
+IF (ENABLE_DRAFTS)
+    ADD_DEFINITIONS (-DGLAR_BUILD_DRAFT_API)
+ENDIF (ENABLE_DRAFTS)
 
 ########################################################################
 # platform.h
@@ -64,7 +67,7 @@ endif()
 
 # required libraries for cygwin
 if (CYGWIN)
-    set(MORE_LIBRARIES -luuid)
+    set(MORE_LIBRARIES)
 endif()
 
 list(APPEND CMAKE_MODULE_PATH "${SOURCE_DIR}")
@@ -106,49 +109,51 @@ ENDIF (ZYRE_FOUND)
 ########################################################################
 # includes
 ########################################################################
-set (blink_headers
-    include/blink_library.h
-    include/blink.h
+set (glar_headers
+    include/glar_library.h
+    include/glar150.h
 )
 
 IF (ENABLE_DRAFTS)
-    list(APPEND blink_headers
-        include/blink_led.h
+    list(APPEND glar_headers
+        include/glar_node.h
+        include/glar_panel.h
     )
 ENDIF (ENABLE_DRAFTS)
 
-source_group ("Header Files" FILES ${blink_headers})
-install(FILES ${blink_headers} DESTINATION include)
+source_group ("Header Files" FILES ${glar_headers})
+install(FILES ${glar_headers} DESTINATION include)
 
 ########################################################################
 # library
 ########################################################################
 include_directories("${SOURCE_DIR}/src" "${SOURCE_DIR}/include")
-set (blink_sources
+set (glar_sources
 )
 
 IF (ENABLE_DRAFTS)
-    list (APPEND blink_sources
-        src/blink_led.c
+    list (APPEND glar_sources
+        src/glar_node.c
+        src/glar_panel.c
     )
 ENDIF (ENABLE_DRAFTS)
 
-source_group("Source Files" FILES ${blink_sources})
+source_group("Source Files" FILES ${glar_sources})
 if (NOT DEFINED BUILD_SHARED_LIBS)
     SET(BUILD_SHARED_LIBS ON)
 endif()
-add_library(blink ${blink_sources})
-set_target_properties(blink
-    PROPERTIES DEFINE_SYMBOL "LIBBLINK_EXPORTS"
+add_library(glar ${glar_sources})
+set_target_properties(glar
+    PROPERTIES DEFINE_SYMBOL "LIBGLAR_EXPORTS"
 )
-set_target_properties(blink
+set_target_properties(glar
     PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${SOURCE_DIR}/src"
 )
-target_link_libraries(blink
+target_link_libraries(glar
     ${ZEROMQ_LIBRARIES} ${MORE_LIBRARIES}
 )
 
-install(TARGETS blink
+install(TARGETS glar
     LIBRARY DESTINATION "lib${LIB_SUFFIX}" # .so file
     ARCHIVE DESTINATION "lib${LIB_SUFFIX}" # .lib file
     RUNTIME DESTINATION bin              # .dll file
@@ -163,17 +168,17 @@ set (exec_prefix "\${prefix}")
 set (libdir "\${prefix}/lib${LIB_SUFFIX}")
 set (includedir "\${prefix}/include")
 IF (ENABLE_DRAFTS)
-    set (pkg_config_defines "-DBLINK_BUILD_DRAFT_API=1")
+    set (pkg_config_defines "-DGLAR_BUILD_DRAFT_API=1")
 ELSE (ENABLE_DRAFTS)
     set (pkg_config_defines "")
 ENDIF (ENABLE_DRAFTS)
 configure_file(
-    "${SOURCE_DIR}/src/libblink.pc.in"
-    "${SOURCE_DIR}/src/libblink.pc"
+    "${SOURCE_DIR}/src/libglar.pc.in"
+    "${SOURCE_DIR}/src/libglar.pc"
 @ONLY)
 
 install(
-    FILES "${SOURCE_DIR}/src/libblink.pc"
+    FILES "${SOURCE_DIR}/src/libglar.pc"
     DESTINATION "lib${LIB_SUFFIX}/pkgconfig"
 )
 
@@ -181,35 +186,35 @@ install(
 # executables
 ########################################################################
 add_executable(
-    blink_shell
-    "${SOURCE_DIR}/src/blink_shell.c"
+    glard
+    "${SOURCE_DIR}/src/glard.c"
 )
 target_link_libraries(
-    blink_shell
-    blink
+    glard
+    glar
     ${LIBZMQ_LIBRARIES}
     ${CZMQ_LIBRARIES}
     ${ZYRE_LIBRARIES}
     ${OPTIONAL_LIBRARIES}
 )
 set_target_properties(
-    blink_shell
+    glard
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${SOURCE_DIR}/src"
 )
 add_executable(
-    blink_selftest
-    "${SOURCE_DIR}/src/blink_selftest.c"
+    glar_selftest
+    "${SOURCE_DIR}/src/glar_selftest.c"
 )
 target_link_libraries(
-    blink_selftest
-    blink
+    glar_selftest
+    glar
     ${LIBZMQ_LIBRARIES}
     ${CZMQ_LIBRARIES}
     ${ZYRE_LIBRARIES}
     ${OPTIONAL_LIBRARIES}
 )
 set_target_properties(
-    blink_selftest
+    glar_selftest
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${SOURCE_DIR}/src"
 )
 
@@ -224,14 +229,15 @@ set(TEST_CLASSES
 
 IF (ENABLE_DRAFTS)
     list (APPEND TEST_CLASSES
-    blink_led
+    glar_node
+    glar_panel
     )
 ENDIF (ENABLE_DRAFTS)
 
 foreach(TEST_CLASS ${TEST_CLASSES})
     add_test(
         NAME ${TEST_CLASS}
-        COMMAND blink_selftest --continue --verbose --test ${TEST_CLASS}
+        COMMAND glar_selftest --continue --verbose --test ${TEST_CLASS}
     )
     set_tests_properties(
         ${TEST_CLASS}

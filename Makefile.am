@@ -28,7 +28,7 @@ TESTS =
 
 EXTRA_DIST = \
     README.md \
-    src/blink_classes.h
+    src/glar_classes.h
 
 include $(srcdir)/src/Makemodule.am
 
