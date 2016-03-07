@@ -318,6 +318,12 @@ fsm_execute (fsm_t *self)
                         zsys_debug ("glar_node:             $ show_at_rest_sequence");
                     show_at_rest_sequence (self->parent);
                 }
+                if (!self->exception) {
+                    //  wait_for_activity
+                    if (self->animate)
+                        zsys_debug ("glar_node:             $ wait_for_activity");
+                    wait_for_activity (self->parent);
+                }
             }
             else
             if (self->event == button_off_event) {
@@ -332,6 +338,12 @@ fsm_execute (fsm_t *self)
                     if (self->animate)
                         zsys_debug ("glar_node:             $ show_at_rest_sequence");
                     show_at_rest_sequence (self->parent);
+                }
+                if (!self->exception) {
+                    //  wait_for_activity
+                    if (self->animate)
+                        zsys_debug ("glar_node:             $ wait_for_activity");
+                    wait_for_activity (self->parent);
                 }
             }
             else {
@@ -440,6 +452,12 @@ fsm_execute (fsm_t *self)
                         zsys_debug ("glar_node:             $ show_at_rest_sequence");
                     show_at_rest_sequence (self->parent);
                 }
+                if (!self->exception) {
+                    //  wait_for_activity
+                    if (self->animate)
+                        zsys_debug ("glar_node:             $ wait_for_activity");
+                    wait_for_activity (self->parent);
+                }
             }
             else
             if (self->event == button_off_event) {
@@ -454,6 +472,12 @@ fsm_execute (fsm_t *self)
                     if (self->animate)
                         zsys_debug ("glar_node:             $ show_at_rest_sequence");
                     show_at_rest_sequence (self->parent);
+                }
+                if (!self->exception) {
+                    //  wait_for_activity
+                    if (self->animate)
+                        zsys_debug ("glar_node:             $ wait_for_activity");
+                    wait_for_activity (self->parent);
                 }
             }
             else {
@@ -541,6 +565,12 @@ fsm_execute (fsm_t *self)
                         zsys_debug ("glar_node:             $ show_at_rest_sequence");
                     show_at_rest_sequence (self->parent);
                 }
+                if (!self->exception) {
+                    //  wait_for_activity
+                    if (self->animate)
+                        zsys_debug ("glar_node:             $ wait_for_activity");
+                    wait_for_activity (self->parent);
+                }
             }
             else
             if (self->event == button_off_event) {
@@ -555,6 +585,12 @@ fsm_execute (fsm_t *self)
                     if (self->animate)
                         zsys_debug ("glar_node:             $ show_at_rest_sequence");
                     show_at_rest_sequence (self->parent);
+                }
+                if (!self->exception) {
+                    //  wait_for_activity
+                    if (self->animate)
+                        zsys_debug ("glar_node:             $ wait_for_activity");
+                    wait_for_activity (self->parent);
                 }
             }
             else {
