@@ -130,6 +130,7 @@ join_network_as_robot (glar_node_t *self)
     zyre_start (self->zyre);
     zyre_join (self->zyre, "GLAR");
     //  Show rotating sequence until peer joins
+    zstr_send (self->panel, "100,010,001,");
     zstr_send (self->panel, "100.010.001.*");
 }
 
@@ -208,13 +209,13 @@ execute_the_command (glar_node_t *self)
     if (system (command) == 0) {
         zsys_info ("System '%s' OK", command);
         //  Flash LED 1 once slowly
-        zstr_send (self->panel, "010:000:");
+        zstr_send (self->panel, "010;000;");
         zyre_whispers (self->zyre, zyre_event_peer_uuid (self->event), "%s", "OK");
     }
     else {
         zsys_info ("System '%s' FAIL", command);
         //  Flash LED 2 once slowly
-        zstr_send (self->panel, "001:000:");
+        zstr_send (self->panel, "001;000;");
         zyre_whispers (self->zyre, zyre_event_peer_uuid (self->event), "%s", "FAILED");
     }
     free (command);
@@ -241,8 +242,11 @@ print_command_results (glar_node_t *self)
 static void
 signal_peer_joined (glar_node_t *self)
 {
-    //  Flash LED 1 three times rapidly
-    zstr_send (self->panel, "010,000,010,000,010,000,");
+    if (self->console)
+        zsys_info ("JOINED peer=%s", zyre_event_peer_name (self->event));
+    else
+        //  Flash LED 1 three times rapidly
+        zstr_send (self->panel, "010,000,010,000,010,000,");
 }
 
 
@@ -253,8 +257,25 @@ signal_peer_joined (glar_node_t *self)
 static void
 signal_peer_left (glar_node_t *self)
 {
-    //  Flash LED 2 three times rapidly
-    zstr_send (self->panel, "001,000,001,000,001,000,");
+    if (self->console)
+        zsys_info ("LEFT peer=%s", zyre_event_peer_name (self->event));
+    else
+        //  Flash LED 2 three times rapidly
+        zstr_send (self->panel, "001,000,001,000,001,000,");
+}
+
+
+
+//  ---------------------------------------------------------------------------
+//  show_at_rest_sequence
+//
+
+static void
+show_at_rest_sequence (glar_node_t *self)
+{
+    //  At rest sequence, LED 0 slow blinking
+    if (!self->console)
+        zstr_send (self->panel, "100::000::*");
 }
 
 
@@ -287,14 +308,4 @@ glar_node_test (bool verbose)
     glar_node_destroy (&node);
     //  @end
     printf ("OK\n");
-}
-
-
-//  ---------------------------------------------------------------------------
-//  start_console_actor
-//
-
-static void
-start_console_actor (glar_node_t *self)
-{
 }

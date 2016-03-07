@@ -63,12 +63,12 @@ s_event_name [] = {
 
 //  Action prototypes
 static void join_network_as_console (glar_node_t *self);
-static void start_console_actor (glar_node_t *self);
 static void wait_for_activity (glar_node_t *self);
 static void join_network_as_robot (glar_node_t *self);
 static void shout_command_to_robots (glar_node_t *self);
 static void print_command_results (glar_node_t *self);
 static void execute_the_command (glar_node_t *self);
+static void show_at_rest_sequence (glar_node_t *self);
 static void leave_network (glar_node_t *self);
 static void signal_peer_joined (glar_node_t *self);
 static void signal_peer_left (glar_node_t *self);
@@ -175,12 +175,6 @@ fsm_execute (fsm_t *self)
                     join_network_as_console (self->parent);
                 }
                 if (!self->exception) {
-                    //  start_console_actor
-                    if (self->animate)
-                        zsys_debug ("glar_node:             $ start_console_actor");
-                    start_console_actor (self->parent);
-                }
-                if (!self->exception) {
                     //  wait_for_activity
                     if (self->animate)
                         zsys_debug ("glar_node:             $ wait_for_activity");
@@ -262,6 +256,12 @@ fsm_execute (fsm_t *self)
                     signal_peer_joined (self->parent);
                 }
                 if (!self->exception) {
+                    //  show_at_rest_sequence
+                    if (self->animate)
+                        zsys_debug ("glar_node:             $ show_at_rest_sequence");
+                    show_at_rest_sequence (self->parent);
+                }
+                if (!self->exception) {
                     //  wait_for_activity
                     if (self->animate)
                         zsys_debug ("glar_node:             $ wait_for_activity");
@@ -275,6 +275,12 @@ fsm_execute (fsm_t *self)
                     if (self->animate)
                         zsys_debug ("glar_node:             $ signal_peer_left");
                     signal_peer_left (self->parent);
+                }
+                if (!self->exception) {
+                    //  show_at_rest_sequence
+                    if (self->animate)
+                        zsys_debug ("glar_node:             $ show_at_rest_sequence");
+                    show_at_rest_sequence (self->parent);
                 }
                 if (!self->exception) {
                     //  wait_for_activity
@@ -312,6 +318,12 @@ fsm_execute (fsm_t *self)
                     execute_the_command (self->parent);
                 }
                 if (!self->exception) {
+                    //  show_at_rest_sequence
+                    if (self->animate)
+                        zsys_debug ("glar_node:             $ show_at_rest_sequence");
+                    show_at_rest_sequence (self->parent);
+                }
+                if (!self->exception) {
                     //  wait_for_activity
                     if (self->animate)
                         zsys_debug ("glar_node:             $ wait_for_activity");
@@ -336,6 +348,12 @@ fsm_execute (fsm_t *self)
                     signal_peer_joined (self->parent);
                 }
                 if (!self->exception) {
+                    //  show_at_rest_sequence
+                    if (self->animate)
+                        zsys_debug ("glar_node:             $ show_at_rest_sequence");
+                    show_at_rest_sequence (self->parent);
+                }
+                if (!self->exception) {
                     //  wait_for_activity
                     if (self->animate)
                         zsys_debug ("glar_node:             $ wait_for_activity");
@@ -349,6 +367,12 @@ fsm_execute (fsm_t *self)
                     if (self->animate)
                         zsys_debug ("glar_node:             $ signal_peer_left");
                     signal_peer_left (self->parent);
+                }
+                if (!self->exception) {
+                    //  show_at_rest_sequence
+                    if (self->animate)
+                        zsys_debug ("glar_node:             $ show_at_rest_sequence");
+                    show_at_rest_sequence (self->parent);
                 }
                 if (!self->exception) {
                     //  wait_for_activity
@@ -395,6 +419,12 @@ fsm_execute (fsm_t *self)
                     signal_peer_joined (self->parent);
                 }
                 if (!self->exception) {
+                    //  show_at_rest_sequence
+                    if (self->animate)
+                        zsys_debug ("glar_node:             $ show_at_rest_sequence");
+                    show_at_rest_sequence (self->parent);
+                }
+                if (!self->exception) {
                     //  wait_for_activity
                     if (self->animate)
                         zsys_debug ("glar_node:             $ wait_for_activity");
@@ -408,6 +438,12 @@ fsm_execute (fsm_t *self)
                     if (self->animate)
                         zsys_debug ("glar_node:             $ signal_peer_left");
                     signal_peer_left (self->parent);
+                }
+                if (!self->exception) {
+                    //  show_at_rest_sequence
+                    if (self->animate)
+                        zsys_debug ("glar_node:             $ show_at_rest_sequence");
+                    show_at_rest_sequence (self->parent);
                 }
                 if (!self->exception) {
                     //  wait_for_activity
