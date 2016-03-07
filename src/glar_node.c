@@ -53,28 +53,20 @@ static void
 s_button_actor (zsock_t *pipe, void *args)
 {
     zsock_signal (pipe, 0);             //  Tell caller we're ready
-    int button_value = 0;               //  Assume button is off
+    int last_value = 0;                 //  Assume button is off
 
     while (!zsys_interrupted) {
-        zchunk_t *chunk = zchunk_slurp ("/sys/kernel/debug/gpio", 8000);
-        if (chunk) {
-            char *data = (char *) zchunk_data (chunk);
-            data [zchunk_size (chunk)] = 0;
-            puts (data);
-            if (strstr (data, "gpio-8   (BTN_8               ) in  lo")) {
-                if (button_value == 0)
-                    zstr_send (pipe, "ON");
-                button_value = 1;
+        int handle = open ("/sys/class/gpio/gpio8/value", O_RDONLY);
+        if (handle != -1) {
+            char value [2] = { 0, 0 };
+            if (read (handle, value, 1) == 1
+            &&  last_value != value [0] - '0') {
+                last_value = value [0] - '0';
+                zstr_send (pipe, value);
             }
-            else
-            if (strstr (data, "gpio-8   (BTN_8               ) in  hi")) {
-                if (button_value == 1)
-                    zstr_send (pipe, "OFF");
-                button_value = 0;
-            }
-            zchunk_destroy (&chunk);
+            close (handle);
         }
-        sleep (2);
+        zclock_sleep (250);
     }
 }
 
@@ -217,10 +209,10 @@ wait_for_activity (glar_node_t *self)
     else
     if (which == (void *) self->button) {
         char *status = zstr_recv (self->button);
-        if (streq (status, "ON"))
+        if (streq (status, "0"))
             fsm_set_next_event (self->fsm, button_on_event);
         else
-        if (streq (status, "OFF"))
+        if (streq (status, "1"))
             fsm_set_next_event (self->fsm, button_off_event);
         else
             zsys_error ("Bad button status: %s", status);
