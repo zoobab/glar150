@@ -28,6 +28,7 @@ struct _glar_node_t {
     zyre_t *zyre;               //  Zyre node instance
     zactor_t *panel;            //  LED control panel
     zactor_t *console;          //  Command line input
+    zactor_t *button;           //  Button monitor
     zpoller_t *poller;          //  Socket poller
     zmsg_t *msg;                //  Last message we received
     zyre_event_t *event;        //  Last zyre_event received
@@ -48,6 +49,36 @@ s_console_actor (zsock_t *pipe, void *args)
 }
 
 
+static void
+s_button_actor (zsock_t *pipe, void *args)
+{
+    zsock_signal (pipe, 0);             //  Tell caller we're ready
+    int button_value = 0;               //  Assume button is off
+
+    while (!zsys_interrupted) {
+        zchunk_t *chunk = zchunk_slurp ("/sys/kernel/debug/gpio", 8000);
+        if (chunk) {
+            char *data = (char *) zchunk_data (chunk);
+            data [zchunk_size (chunk)] = 0;
+            puts (data);
+            if (strstr (data, "gpio-8   (BTN_8               ) in  lo")) {
+                if (button_value == 0)
+                    zstr_send (pipe, "ON");
+                button_value = 1;
+            }
+            else
+            if (strstr (data, "gpio-8   (BTN_8               ) in  hi")) {
+                if (button_value == 1)
+                    zstr_send (pipe, "OFF");
+                button_value = 0;
+            }
+            zchunk_destroy (&chunk);
+        }
+        sleep (2);
+    }
+}
+
+
 //  --------------------------------------------------------------------------
 //  Create a new glar node
 
@@ -57,15 +88,22 @@ glar_node_new (const char *iface, bool console)
     glar_node_t *self = (glar_node_t *) zmalloc (sizeof (glar_node_t));
     assert (self);
     self->fsm = fsm_new (self);
+
+    //  Grab us a new Zyre node
     self->zyre = zyre_new (NULL);
+    zyre_set_interface (self->zyre, iface);
+    zsys_info ("using interface=%s", iface);
+
+    //  Start actors
     self->panel = zactor_new (glar_panel_actor, NULL);
-    self->poller = zpoller_new (zyre_socket (self->zyre), NULL);
+    self->button = zactor_new (s_button_actor, NULL);
+    self->poller = zpoller_new (
+        zyre_socket (self->zyre), self->panel, self->button, NULL);
+
     if (console) {
         self->console = zactor_new (s_console_actor, NULL);
         zpoller_add (self->poller, self->console);
     }
-    zyre_set_interface (self->zyre, iface);
-    zsys_info ("using interface=%s", iface);
     return self;
 }
 
@@ -155,11 +193,11 @@ join_network_as_console (glar_node_t *self)
 static void
 wait_for_activity (glar_node_t *self)
 {
+    zmsg_destroy (&self->msg);
     zsock_t *which = (zsock_t *) zpoller_wait (self->poller, -1);
     if (which == zyre_socket (self->zyre)) {
         zyre_event_destroy (&self->event);
         self->event = zyre_event_new (self->zyre);
-        zmsg_destroy (&self->msg);
         self->msg = zyre_event_get_msg (self->event);
 
         if (streq (zyre_event_type (self->event), "JOIN"))
@@ -177,9 +215,20 @@ wait_for_activity (glar_node_t *self)
             fsm_set_next_event (self->fsm, other_event);
     }
     else
+    if (which == (void *) self->button) {
+        char *status = zstr_recv (self->button);
+        if (streq (status, "ON"))
+            fsm_set_next_event (self->fsm, button_on_event);
+        else
+        if (streq (status, "OFF"))
+            fsm_set_next_event (self->fsm, button_off_event);
+        else
+            zsys_error ("Bad button status: %s", status);
+        free (status);
+    }
+    else
     if (self->console
     && (which == (void *) self->console)) {
-        zmsg_destroy (&self->msg);
         self->msg = zmsg_recv (self->console);
         fsm_set_next_event (self->fsm, console_command_event);
     }
@@ -276,6 +325,28 @@ show_at_rest_sequence (glar_node_t *self)
     //  At rest sequence, LED 0 slow blinking
     if (!self->console)
         zstr_send (self->panel, "100::000::*");
+}
+
+
+//  ---------------------------------------------------------------------------
+//  signal_button_on
+//
+
+static void
+signal_button_on (glar_node_t *self)
+{
+    zstr_send (self->panel, "111,000,111,000,111,000,111,000,");
+}
+
+
+//  ---------------------------------------------------------------------------
+//  signal_button_off
+//
+
+static void
+signal_button_off (glar_node_t *self)
+{
+    zstr_send (self->panel, "111;000;");
 }
 
 
