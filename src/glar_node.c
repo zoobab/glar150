@@ -243,7 +243,7 @@ wait_for_activity (glar_node_t *self)
 static void
 check_for_activity (glar_node_t *self)
 {
-    void *which = zpoller_wait (self->poller, 0);
+    void *which = zpoller_wait (self->poller, 1000);
     if (which)
         s_handle_activity (self, which);
     else
