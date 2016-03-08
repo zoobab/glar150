@@ -415,8 +415,8 @@ start_emergency_sequence (glar_node_t *self)
 static void
 stop_emergency_sequence (glar_node_t *self)
 {
-    zyre_shouts (self->zyre, "GLAR", "%s", "#K");
-    zstr_send (self->morse, "K");
+    zyre_shouts (self->zyre, "GLAR", "%s", "#");
+    zstr_send (self->morse, "");
 }
 
 
