@@ -102,14 +102,13 @@ s_display_letter (char *sequence)
         if (*sequence == '.') {
             s_set_lamp (true);
             zclock_sleep (MORSE_PERIOD);
-            s_set_lamp (false);
         }
         else
         if (*sequence == '-') {
             s_set_lamp (true);
             zclock_sleep (3 * MORSE_PERIOD);
-            s_set_lamp (false);
         }
+        s_set_lamp (false);
         zclock_sleep (MORSE_PERIOD);
         sequence++;
     }
@@ -134,14 +133,12 @@ s_process_next (glar_lamp_t *self)
         }
     }
     else
-    if (letter == ' ') {
-        s_set_lamp (false);
+    if (letter == ' ')
         self->timeout = 7 * MORSE_PERIOD;
-    }
     else
     if (letter == '*') {
-        //  Restart sequence
-        self->timeout = 0;
+        //  Assume space, and restart sequence
+        self->timeout = 7 * MORSE_PERIOD;
         self->seq_ptr = self->sequence;
     }
     else {
