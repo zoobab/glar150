@@ -39,11 +39,12 @@ s_console_actor (zsock_t *pipe, void *args)
 {
     zsock_signal (pipe, 0);             //  Tell caller we're ready
     while (!zsys_interrupted) {
-        char command [256];
-        if (fgets (command, 256, stdin)) {
+        char command [1024];
+        if (fgets (command, sizeof (command), stdin)) {
             //  Discard final newline
             command [strlen (command) - 1] = 0;
-            zstr_send (pipe, command);
+            if (*command)
+                zstr_send (pipe, command);
         }
     }
 }
@@ -265,22 +266,41 @@ shout_command_to_robots (glar_node_t *self)
 //  execute_the_command
 //
 
+static char *
+s_run (const char *command)
+{
+    zchunk_t *chunk = zchunk_new (NULL, 0);
+    FILE *stream = popen (command, "r");
+    if (!stream)
+        return NULL;
+    char cur_line [1024];
+    while (fgets (cur_line, sizeof (cur_line), stream))
+        zchunk_extend (chunk, cur_line, strlen (cur_line));
+    pclose (stream);
+    char *results = zchunk_strdup (chunk);
+    zchunk_destroy (&chunk);
+    return results;
+}
+
+
 static void
 execute_the_command (glar_node_t *self)
 {
     char *command = zmsg_popstr (self->msg);
     zsys_info ("Run command '%s'", command);
-    if (system (command) == 0) {
+    char *results = s_run (command);
+    if (results) {
         zsys_info ("System '%s' OK", command);
         //  Flash LED 1 once slowly
         zstr_send (self->panel, "010;000;");
-        zyre_whispers (self->zyre, zyre_event_peer_uuid (self->event), "%s", "OK");
+        zyre_whispers (self->zyre, zyre_event_peer_uuid (self->event), "%s", results);
+        free (results);
     }
     else {
         zsys_info ("System '%s' FAIL", command);
         //  Flash LED 2 once slowly
         zstr_send (self->panel, "001;000;");
-        zyre_whispers (self->zyre, zyre_event_peer_uuid (self->event), "%s", "FAILED");
+        zyre_whispers (self->zyre, zyre_event_peer_uuid (self->event), "%s", "failed");
     }
     free (command);
 }
@@ -374,7 +394,8 @@ show_emergency_sequence (glar_node_t *self)
 {
     char *sequence = "blink 3 0.2; blink 3 0.6; blink 3 0.2";
     zyre_shouts (self->zyre, "GLAR", "%s", sequence);
-    system (sequence);
+    char *results = s_run (sequence);
+    free (results);
 }
 
 
