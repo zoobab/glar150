@@ -3,12 +3,14 @@
 GLARD_UP=0
 GW_IP="192.168.43.1"
 
+blink 1 0.1
 while true; do
     #   If wireless network is up, start glard
     ping -q -W1 -c2 ${GW_IP} > /dev/null
     if [ $? -eq 0 ]; then
         if [ $GLARD_UP -eq 0 ]; then
             GLARD_UP=1
+            blink 2 0.1
             screen -d -L -m /usr/bin/glard -v
         fi
     else
