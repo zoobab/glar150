@@ -295,13 +295,7 @@ execute_the_command (glar_node_t *self)
 {
     char *command = zmsg_popstr (self->msg);
     zsys_info ("Run command '%s'", command);
-    if (streq (command, "SOS"))
-        zstr_send (self->lamp, "SOS");
-    else
-    if (streq (command, "/SOS"))
-        zstr_send (self->lamp, "K");
-    else
-    if (*command == '#')        //  Show rest as Morse code
+    if (*command == '#')        //  Display command as Morse code
         zstr_send (self->lamp, command + 1);
     else {
         char *results = s_run (command);
@@ -409,8 +403,8 @@ signal_button_off (glar_node_t *self)
 static void
 start_emergency_sequence (glar_node_t *self)
 {
-    zyre_shouts (self->zyre, "GLAR", "%s", "SOS");
-    zstr_send (self->lamp, "SOS");
+    zyre_shouts (self->zyre, "GLAR", "%s", "#SOS*");
+    zstr_send (self->lamp, "SOS*");
 }
 
 
@@ -421,7 +415,7 @@ start_emergency_sequence (glar_node_t *self)
 static void
 stop_emergency_sequence (glar_node_t *self)
 {
-    zyre_shouts (self->zyre, "GLAR", "%s", "/SOS");
+    zyre_shouts (self->zyre, "GLAR", "%s", "#K");
     zstr_send (self->lamp, "K");
 }
 
