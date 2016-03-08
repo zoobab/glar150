@@ -7,3 +7,4 @@ The demo shows how to control the three LED lights, and an external high-intensi
 We use a cluster of bots, each with its own external lamp, and battery pack. The cluster joins a well-known WiFi network, and then self-discovers and interconnects using Zyre.
 
 Each bot starts by connecting to the Zyre network and joining the `glar150` group. The bots then talk to each other and to a controller, to demonstrate their capabilities.
+ 
