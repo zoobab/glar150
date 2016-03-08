@@ -13,4 +13,5 @@
 
     <actor name = "glar_panel">LED panel controller</actor>
     <model name = "glar_panel">LED panel controller FSM</model>
+    <extra name = "glard_init.sh" />
 </project>

@@ -184,11 +184,10 @@ join_network_as_console (glar_node_t *self)
 //
 
 static void
-wait_for_activity (glar_node_t *self)
+s_handle_activity (glar_node_t *self, void *which)
 {
     zmsg_destroy (&self->msg);
-    zsock_t *which = (zsock_t *) zpoller_wait (self->poller, -1);
-    if (which == zyre_socket (self->zyre)) {
+    if (which == (void *) zyre_socket (self->zyre)) {
         zyre_event_destroy (&self->event);
         self->event = zyre_event_new (self->zyre);
         self->msg = zyre_event_get_msg (self->event);
@@ -220,11 +219,34 @@ wait_for_activity (glar_node_t *self)
         free (status);
     }
     else
-    if (self->console
-    && (which == (void *) self->console)) {
+    if (which == (void *) self->console) {
         self->msg = zmsg_recv (self->console);
         fsm_set_next_event (self->fsm, console_command_event);
     }
+}
+
+static void
+wait_for_activity (glar_node_t *self)
+{
+    void *which = zpoller_wait (self->poller, -1);
+    if (which)
+        s_handle_activity (self, which);
+    //  Else state machine will end now
+}
+
+
+//  ---------------------------------------------------------------------------
+//  check_for_activity
+//
+
+static void
+check_for_activity (glar_node_t *self)
+{
+    void *which = zpoller_wait (self->poller, 0);
+    if (which)
+        s_handle_activity (self, which);
+    else
+        fsm_set_next_event (self->fsm, nothing_event);
 }
 
 
@@ -340,6 +362,19 @@ static void
 signal_button_off (glar_node_t *self)
 {
     zstr_send (self->panel, "111;000;");
+}
+
+
+//  ---------------------------------------------------------------------------
+//  show_emergency_sequence
+//
+
+static void
+show_emergency_sequence (glar_node_t *self)
+{
+    char *sequence = "blink 3 0.2; blink 3 0.6; blink 3 0.2";
+    zyre_shouts (self->zyre, "GLAR", "%s", sequence);
+    system (sequence);
 }
 
 
