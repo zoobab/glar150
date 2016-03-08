@@ -45,6 +45,9 @@
         <action name = "show emergency sequence" />
         <action name = "check for activity" />
     </event>
+    <event name = "whisper">
+        <action name = "check for activity" />
+    </event>
 </state>
 
 <state name = "defaults">
