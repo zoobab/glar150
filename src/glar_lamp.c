@@ -172,7 +172,7 @@ s_set_lamp (const char *value)
         //  We're probably not on a GL-AR150
         zsys_info ("set lamp=%s", value);
     else {
-        if (write (handle, value, 1) == -1)
+        if (write (handle, value, strlen (value)) == -1)
             zsys_error ("can't write to GPIO 1");
         close (handle);
     }
@@ -181,7 +181,7 @@ s_set_lamp (const char *value)
 static void
 set_lamp_on (glar_lamp_t *self)
 {
-    s_set_lamp ("1");
+    s_set_lamp ("1\n");
 }
 
 
@@ -192,7 +192,7 @@ set_lamp_on (glar_lamp_t *self)
 static void
 set_lamp_off (glar_lamp_t *self)
 {
-    s_set_lamp ("0");
+    s_set_lamp ("0\n");
 }
 
 
