@@ -538,6 +538,15 @@ fsm_execute (fsm_t *self)
                 }
             }
             else
+            if (self->event == whisper_event) {
+                if (!self->exception) {
+                    //  check_for_activity
+                    if (self->animate)
+                        zsys_debug ("glar_node:             $ check_for_activity");
+                    check_for_activity (self->parent);
+                }
+            }
+            else
             if (self->event == finished_event) {
                 if (!self->exception) {
                     //  leave_network
