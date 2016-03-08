@@ -1,5 +1,5 @@
 /*  =========================================================================
-    glar_panel - LED panel controller
+    glar_lamp - Lamp controller
 
     Copyright (c) the Contributors as noted in the AUTHORS file.       
     This file is part of the Glar150 Project.
@@ -12,25 +12,22 @@
 
 /*
 @header
-    glar_panel - LED panel controller
+    glar_lamp - LED lamp controller
 @discuss
     Commands:
-
-    nnn         3-LED bitmap, n is 0 or 1 left to right
-    ,           Pause for 100msec
-    ;           Pause for 500msec
-    .           Pause for 100msec if inactive
-    :           Pause for 500msec if inactive
-    *           Repeat previous sequence
+        + -         Switch lamp on or off
+        nnn         Pause for nnn msec
+        ?nnn        Pause for nnn msec if inactive
+        *           Repeat previous sequence
 @end
 */
 
 #include "glar_classes.h"
-#include "glar_panel_fsm.h"     //  Generated state machine engine
+#include "glar_lamp_fsm.h"     //  Generated state machine engine
 
 //  Structure of our actor
 
-struct _glar_panel_t {
+struct _glar_lamp_t {
     zsock_t *pipe;              //  Actor command pipe
     zpoller_t *poller;          //  Socket poller
     bool terminated;            //  Did caller ask us to quit?
@@ -45,12 +42,12 @@ struct _glar_panel_t {
 
 
 //  --------------------------------------------------------------------------
-//  Create a new glar_panel instance
+//  Create a new glar_lamp instance
 
-static glar_panel_t *
-glar_panel_new (zsock_t *pipe, void *args)
+static glar_lamp_t *
+glar_lamp_new (zsock_t *pipe, void *args)
 {
-    glar_panel_t *self = (glar_panel_t *) zmalloc (sizeof (glar_panel_t));
+    glar_lamp_t *self = (glar_lamp_t *) zmalloc (sizeof (glar_lamp_t));
     assert (self);
     self->pipe = pipe;
     self->poller = zpoller_new (self->pipe, NULL);
@@ -61,14 +58,14 @@ glar_panel_new (zsock_t *pipe, void *args)
 
 
 //  --------------------------------------------------------------------------
-//  Destroy the glar_panel instance
+//  Destroy the glar_lamp instance
 
 static void
-glar_panel_destroy (glar_panel_t **self_p)
+glar_lamp_destroy (glar_lamp_t **self_p)
 {
     assert (self_p);
     if (*self_p) {
-        glar_panel_t *self = *self_p;
+        glar_lamp_t *self = *self_p;
         fsm_destroy (&self->fsm);
         zpoller_destroy (&self->poller);
         free (self);
@@ -81,16 +78,16 @@ glar_panel_destroy (glar_panel_t **self_p)
 //  This is the actor which runs in its own thread.
 
 void
-glar_panel_actor (zsock_t *pipe, void *args)
+glar_lamp_actor (zsock_t *pipe, void *args)
 {
-    glar_panel_t *self = glar_panel_new (pipe, args);
+    glar_lamp_t *self = glar_lamp_new (pipe, args);
     assert (self);
     zsock_signal (self->pipe, 0);       //  Tell caller we're ready
 
     //  Main loop, we wait on commands coming via our pipe
     while (!self->terminated) {
         if (self->verbose)
-            zsys_info ("glar_panel: wait timeout=%d", self->timeout);
+            zsys_info ("glar_lamp: wait timeout=%d", self->timeout);
         zsock_t *which = (zsock_t *) zpoller_wait (self->poller, self->timeout);
         if (which == self->pipe) {
             zmsg_t *request = zmsg_recv (self->pipe);
@@ -99,7 +96,7 @@ glar_panel_actor (zsock_t *pipe, void *args)
 
             char *command = zmsg_popstr (request);
             if (self->verbose)
-                zsys_info ("glar_panel: pipe command=%s", command);
+                zsys_info ("glar_lamp: pipe command=%s", command);
             if (streq (command, "VERBOSE")) {
                 self->verbose = true;
                 fsm_set_animate (self->fsm, true);
@@ -124,7 +121,7 @@ glar_panel_actor (zsock_t *pipe, void *args)
         //  Execute state machine until it needs an event
         fsm_execute (self->fsm);
     }
-    glar_panel_destroy (&self);
+    glar_lamp_destroy (&self);
 }
 
 
@@ -133,27 +130,27 @@ glar_panel_actor (zsock_t *pipe, void *args)
 //
 
 static void
-get_next_command (glar_panel_t *self)
+get_next_command (glar_lamp_t *self)
 {
     self->command = *self->seq_ptr;
     if (self->command == '\0')
         fsm_set_next_event (self->fsm, finished_event);
     else {
         self->seq_ptr++;
-        if (self->command == '0' || self->command == '1')
-            fsm_set_next_event (self->fsm, bitmap_event);
+        if (self->command == '+')
+            fsm_set_next_event (self->fsm, lamp_on_event);
         else
-        if (self->command == ',')
-            fsm_set_next_event (self->fsm, short_pause_event);
+        if (self->command == '-')
+            fsm_set_next_event (self->fsm, lamp_off_event);
         else
-        if (self->command == ';')
-            fsm_set_next_event (self->fsm, long_pause_event);
+        if (self->command == '?') {
+            fsm_set_next_event (self->fsm, maybe_event);
+            self->command = *self->seq_ptr++;
+            assert (isdigit (self->command));
+        }
         else
-        if (self->command == '.')
-            fsm_set_next_event (self->fsm, short_poll_event);
-        else
-        if (self->command == ':')
-            fsm_set_next_event (self->fsm, long_poll_event);
+        if (isdigit (self->command))
+            fsm_set_next_event (self->fsm, sleep_event);
         else
         if (self->command == '*')
             fsm_set_next_event (self->fsm, repeat_event);
@@ -164,16 +161,52 @@ get_next_command (glar_panel_t *self)
 
 
 //  ---------------------------------------------------------------------------
-//  collect_full_bitmap
+//  set_lamp_on
 //
 
 static void
-collect_full_bitmap (glar_panel_t *self)
+s_set_lamp (const char *value)
 {
-    self->selection = 0;
+    int handle = open ("/sys/class/gpio/gpio1/value", O_WRONLY);
+    if (handle == -1)
+        //  We're probably not on a GL-AR150
+        zsys_info ("set lamp=%s", value);
+    else {
+        if (write (handle, value, 1) == -1)
+            zsys_error ("can't write to GPIO 1");
+        close (handle);
+    }
+}
+
+static void
+set_lamp_on (glar_lamp_t *self)
+{
+    s_set_lamp ("1");
+}
+
+
+//  ---------------------------------------------------------------------------
+//  set_lamp_off
+//
+
+static void
+set_lamp_off (glar_lamp_t *self)
+{
+    s_set_lamp ("0");
+}
+
+
+//  ---------------------------------------------------------------------------
+//  collect_timeout_value
+//
+
+static void
+collect_timeout_value (glar_lamp_t *self)
+{
+    self->timeout = 0;
     while (true) {
-        self->selection = (self->selection << 1) + (self->command - '0');
-        if (*self->seq_ptr == '0' || *self->seq_ptr == '1')
+        self->timeout = (self->timeout * 10) + (self->command - '0');
+        if (isdigit (*self->seq_ptr))
             self->command = *self->seq_ptr++;
         else
             break;
@@ -182,80 +215,13 @@ collect_full_bitmap (glar_panel_t *self)
 
 
 //  ---------------------------------------------------------------------------
-//  set_leds_as_specified
+//  sleep_as_specified
 //
 
 static void
-s_set_led_status (int selection, int bitvalue, const char *name)
+sleep_as_specified (glar_lamp_t *self)
 {
-    const char *path = "/sys/devices/platform/leds-gpio/leds/gl_ar150:%s/brightness";
-    const char *led_value = selection & bitvalue? "1": "0";
-    char *device = zsys_sprintf (path, name);
-    int handle = open (device, O_WRONLY);
-
-    if (handle == -1)
-        //  We're probably not on a GL-AR150
-        zsys_info ("set led=%s value=%s", name, led_value);
-    else {
-        if (write (handle, led_value, 1) == -1)
-            zsys_error ("can't write to device=%s", device);
-        close (handle);
-    }
-    free (device);
-}
-
-
-static void
-set_leds_as_specified (glar_panel_t *self)
-{
-    //  Set LED status from left to right
-    s_set_led_status (self->selection, 4, "wan");
-    s_set_led_status (self->selection, 2, "lan");
-    s_set_led_status (self->selection, 1, "wlan");
-}
-
-
-//  ---------------------------------------------------------------------------
-//  do_short_sleep
-//
-
-static void
-do_short_sleep (glar_panel_t *self)
-{
-    zclock_sleep (100);
-}
-
-
-//  ---------------------------------------------------------------------------
-//  do_long_sleep
-//
-
-static void
-do_long_sleep (glar_panel_t *self)
-{
-    zclock_sleep (500);
-}
-
-
-//  ---------------------------------------------------------------------------
-//  prepare_short_poll
-//
-
-static void
-prepare_short_poll (glar_panel_t *self)
-{
-    self->timeout = 100;
-}
-
-
-//  ---------------------------------------------------------------------------
-//  prepare_long_poll
-//
-
-static void
-prepare_long_poll (glar_panel_t *self)
-{
-    self->timeout = 500;
+    zclock_sleep (self->timeout);
 }
 
 
@@ -264,7 +230,7 @@ prepare_long_poll (glar_panel_t *self)
 //
 
 static void
-prepare_blocking_poll (glar_panel_t *self)
+prepare_blocking_poll (glar_lamp_t *self)
 {
     self->timeout = -1;
 }
@@ -275,7 +241,7 @@ prepare_blocking_poll (glar_panel_t *self)
 //
 
 static void
-start_sequence_again (glar_panel_t *self)
+start_sequence_again (glar_lamp_t *self)
 {
     assert (self->sequence);
     self->seq_ptr = self->sequence;
@@ -286,19 +252,19 @@ start_sequence_again (glar_panel_t *self)
 //  Self test of this actor.
 
 void
-glar_panel_test (bool verbose)
+glar_lamp_test (bool verbose)
 {
-    printf (" * glar_panel: ");
+    printf (" * glar_lamp: ");
 
     //  @selftest
-    zactor_t *glar_panel = zactor_new (glar_panel_actor, NULL);
+    zactor_t *glar_lamp = zactor_new (glar_lamp_actor, NULL);
     if (verbose)
-        zstr_send (glar_panel, "VERBOSE");
-    zstr_send (glar_panel, "100,010,001,");
-    zstr_send (glar_panel, "100.010.001.*");
-    zclock_sleep (800);
-    zstr_send (glar_panel, "111,000,");
-    zactor_destroy (&glar_panel);
+        zstr_send (glar_lamp, "VERBOSE");
+    zstr_send (glar_lamp, "+300-300+300-300");
+    zstr_send (glar_lamp, "+?300-?300+?300-?300");
+    zclock_sleep (500);
+    zstr_send (glar_lamp, "+300-300");
+    zactor_destroy (&glar_lamp);
     //  @end
 
     printf ("OK\n");

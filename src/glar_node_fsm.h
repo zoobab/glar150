@@ -78,9 +78,10 @@ static void print_command_results (glar_node_t *self);
 static void execute_the_command (glar_node_t *self);
 static void show_at_rest_sequence (glar_node_t *self);
 static void signal_button_on (glar_node_t *self);
-static void show_emergency_sequence (glar_node_t *self);
+static void start_emergency_sequence (glar_node_t *self);
 static void check_for_activity (glar_node_t *self);
 static void signal_button_off (glar_node_t *self);
+static void stop_emergency_sequence (glar_node_t *self);
 static void leave_network (glar_node_t *self);
 static void signal_peer_joined (glar_node_t *self);
 static void signal_peer_left (glar_node_t *self);
@@ -393,10 +394,10 @@ fsm_execute (fsm_t *self)
                     signal_button_on (self->parent);
                 }
                 if (!self->exception) {
-                    //  show_emergency_sequence
+                    //  start_emergency_sequence
                     if (self->animate)
-                        zsys_debug ("glar_node:             $ show_emergency_sequence");
-                    show_emergency_sequence (self->parent);
+                        zsys_debug ("glar_node:             $ start_emergency_sequence");
+                    start_emergency_sequence (self->parent);
                 }
                 if (!self->exception) {
                     //  check_for_activity
@@ -508,6 +509,12 @@ fsm_execute (fsm_t *self)
                     signal_button_off (self->parent);
                 }
                 if (!self->exception) {
+                    //  stop_emergency_sequence
+                    if (self->animate)
+                        zsys_debug ("glar_node:             $ stop_emergency_sequence");
+                    stop_emergency_sequence (self->parent);
+                }
+                if (!self->exception) {
                     //  show_at_rest_sequence
                     if (self->animate)
                         zsys_debug ("glar_node:             $ show_at_rest_sequence");
@@ -524,12 +531,6 @@ fsm_execute (fsm_t *self)
             }
             else
             if (self->event == nothing_event) {
-                if (!self->exception) {
-                    //  show_emergency_sequence
-                    if (self->animate)
-                        zsys_debug ("glar_node:             $ show_emergency_sequence");
-                    show_emergency_sequence (self->parent);
-                }
                 if (!self->exception) {
                     //  check_for_activity
                     if (self->animate)

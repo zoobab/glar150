@@ -1,0 +1,31 @@
+<class name = "glar_lamp" script = "fsm_c">
+
+<state name = "have command">
+    <event name = "lamp on">
+        <action name = "set lamp on" />
+        <action name = "get next command" />
+    </event>
+    <event name = "lamp off">
+        <action name = "set lamp off" />
+        <action name = "get next command" />
+    </event>
+    <event name = "maybe">
+        <action name = "collect timeout value" />
+        <!-- Return to main loop for the pause -->
+    </event>
+    <event name = "sleep">
+        <action name = "collect timeout value" />
+        <action name = "sleep as specified" />
+        <action name = "get next command" />
+    </event>
+    <event name = "repeat">
+        <action name = "start sequence again" />
+        <action name = "get next command" />
+    </event>
+    <event name = "finished">
+        <action name = "prepare blocking poll" />
+        <!-- Return to main loop for next sequence -->
+    </event>
+</state>
+
+</class>
