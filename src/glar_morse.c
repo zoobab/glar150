@@ -1,5 +1,5 @@
 /*  =========================================================================
-    glar_lamp - Lamp controller
+    glar_morse - Morse lamp controller
 
     Copyright (c) the Contributors as noted in the AUTHORS file.       
     This file is part of the Glar150 Project.
@@ -24,12 +24,12 @@
 
 //  Structure of our actor
 
-struct _glar_lamp_t {
+struct _glar_morse_t {
     zsock_t *pipe;              //  Actor command pipe
     zpoller_t *poller;          //  Socket poller
     bool terminated;            //  Did caller ask us to quit?
     bool verbose;               //  Verbose logging enabled?
-    char *sequence;             //  Current display sequence
+    char sequence [1024];       //  Current display sequence
     char *seq_ptr;              //  Pointer into current sequence
     int timeout;                //  Milliseconds for next poll
 };
@@ -47,12 +47,12 @@ char *morse_alphabet [] = {
 
 
 //  --------------------------------------------------------------------------
-//  Create a new glar_lamp instance
+//  Create a new glar_morse instance
 
-static glar_lamp_t *
-glar_lamp_new (zsock_t *pipe, void *args)
+static glar_morse_t *
+glar_morse_new (zsock_t *pipe, void *args)
 {
-    glar_lamp_t *self = (glar_lamp_t *) zmalloc (sizeof (glar_lamp_t));
+    glar_morse_t *self = (glar_morse_t *) zmalloc (sizeof (glar_morse_t));
     assert (self);
     self->pipe = pipe;
     self->poller = zpoller_new (self->pipe, NULL);
@@ -62,14 +62,14 @@ glar_lamp_new (zsock_t *pipe, void *args)
 
 
 //  --------------------------------------------------------------------------
-//  Destroy the glar_lamp instance
+//  Destroy the glar_morse instance
 
 static void
-glar_lamp_destroy (glar_lamp_t **self_p)
+glar_morse_destroy (glar_morse_t **self_p)
 {
     assert (self_p);
     if (*self_p) {
-        glar_lamp_t *self = *self_p;
+        glar_morse_t *self = *self_p;
         zpoller_destroy (&self->poller);
         free (self);
         *self_p = NULL;
@@ -77,8 +77,49 @@ glar_lamp_destroy (glar_lamp_t **self_p)
 }
 
 
+//  Convert text string into command sequence
+//  Where:
+//      +   switch on
+//      -   switch off
+//      .   pause one Morse cycle
+//      *   repeat sequence from start
+
 static void
-s_set_lamp (bool on)
+s_build_sequence (char *sequence, char *string)
+{
+    sequence [0] = 0;
+    while (*string) {
+        char letter = toupper (*string++);
+        if (isalnum (letter)) {
+            for (int index = 0; index < sizeof (morse_alphabet) / sizeof (char *); index++) {
+                if (letter == morse_alphabet [index][0]) {
+                    char *bip_ptr = morse_alphabet [index] + 1;
+                    while (*bip_ptr) {
+                        if (*bip_ptr == '.')
+                            strcat (sequence, "+.-.");
+                        else
+                            strcat (sequence, "+...-.");
+                        bip_ptr++;
+                    }
+                    strcat (sequence, "..");
+                    break;
+                }
+            }
+        }
+        else
+        if (letter == ' ')
+            strcat (sequence, ".....");
+        else
+        if (letter == '*')
+            strcat (sequence, "*");
+        else
+            zsys_error ("glar_morse: unknown command '%c'", letter);
+    }
+    zsys_info ("Sequence=%s", sequence);
+}
+
+static void
+s_set_morse (bool on)
 {
     char *value = on? "1": "0";
     int handle = open ("/sys/class/gpio/gpio1/value", O_WRONLY);
@@ -92,58 +133,25 @@ s_set_lamp (bool on)
     }
 }
 
-
-//  Show a dot/dash sequence
-
 static void
-s_display_letter (char *sequence)
+s_show_sequence (glar_morse_t *self)
 {
-    while (*sequence) {
-        if (*sequence == '.') {
-            s_set_lamp (true);
-            zclock_sleep (MORSE_PERIOD);
-        }
+    if (!self->seq_ptr)
+        return;
+
+    while (*self->seq_ptr) {
+        char command = *self->seq_ptr++;
+        if (command == '+')
+            s_set_morse (true);
         else
-        if (*sequence == '-') {
-            s_set_lamp (true);
-            zclock_sleep (3 * MORSE_PERIOD);
-        }
-        s_set_lamp (false);
-        zclock_sleep (MORSE_PERIOD);
-        sequence++;
-    }
-}
-
-
-static void
-s_process_next (glar_lamp_t *self)
-{
-    if (*self->seq_ptr == '\0')
-        return;             //  At end of string, do nothing
-
-    char letter = *self->seq_ptr++;
-    if (isalnum (letter)) {
-        letter = toupper (letter);
-        for (int index = 0; index < sizeof (morse_alphabet) / sizeof (char *); index++) {
-            if (morse_alphabet [index][0] == letter) {
-                s_display_letter (morse_alphabet [index] + 1);
-                self->timeout = 2 * MORSE_PERIOD;
-                break;
-            }
-        }
-    }
-    else
-    if (letter == ' ')
-        self->timeout = 7 * MORSE_PERIOD;
-    else
-    if (letter == '*') {
-        //  Assume space, and restart sequence
-        self->timeout = 7 * MORSE_PERIOD;
-        self->seq_ptr = self->sequence;
-    }
-    else {
-        zsys_error ("glar_lamp: unknown command '%c'", letter);
-        self->timeout = -1;
+        if (command == '-')
+            s_set_morse (false);
+        else
+        if (command == '*')
+            self->seq_ptr = self->sequence;
+        else
+        if (command == '.')
+            break;
     }
 }
 
@@ -152,17 +160,15 @@ s_process_next (glar_lamp_t *self)
 //  This is the actor which runs in its own thread.
 
 void
-glar_lamp_actor (zsock_t *pipe, void *args)
+glar_morse_actor (zsock_t *pipe, void *args)
 {
-    glar_lamp_t *self = glar_lamp_new (pipe, args);
+    glar_morse_t *self = glar_morse_new (pipe, args);
     assert (self);
     zsock_signal (self->pipe, 0);       //  Tell caller we're ready
 
     //  Main loop, we wait on commands coming via our pipe
     while (!self->terminated) {
-        if (self->verbose)
-            zsys_info ("glar_lamp: wait timeout=%d", self->timeout);
-        zsock_t *which = (zsock_t *) zpoller_wait (self->poller, self->timeout);
+        zsock_t *which = (zsock_t *) zpoller_wait (self->poller, MORSE_PERIOD);
         if (which == self->pipe) {
             zmsg_t *request = zmsg_recv (self->pipe);
             if (!request)
@@ -170,27 +176,23 @@ glar_lamp_actor (zsock_t *pipe, void *args)
 
             char *command = zmsg_popstr (request);
             if (self->verbose)
-                zsys_info ("glar_lamp: pipe command=%s", command);
+                zsys_info ("glar_morse: pipe command=%s", command);
             if (streq (command, "VERBOSE"))
                 self->verbose = true;
             else
             if (streq (command, "$TERM"))
                 self->terminated = true;
             else {
-                //  Whatever came on the pipe is a new string
-                free (self->sequence);
-                self->sequence = command;
+                //  Whatever came on the pipe is a new sequence
+                s_build_sequence (self->sequence, command);
                 self->seq_ptr = self->sequence;
-                command = NULL;
-                s_process_next (self);
             }
             zstr_free (&command);
             zmsg_destroy (&request);
         }
-        else
-            s_process_next (self);
+        s_show_sequence (self);
     }
-    glar_lamp_destroy (&self);
+    glar_morse_destroy (&self);
 }
 
 
@@ -198,18 +200,18 @@ glar_lamp_actor (zsock_t *pipe, void *args)
 //  Self test of this actor.
 
 void
-glar_lamp_test (bool verbose)
+glar_morse_test (bool verbose)
 {
-    printf (" * glar_lamp: ");
+    printf (" * glar_morse: ");
 
     //  @selftest
-    zactor_t *glar_lamp = zactor_new (glar_lamp_actor, NULL);
+    zactor_t *glar_morse = zactor_new (glar_morse_actor, NULL);
     if (verbose)
-        zstr_send (glar_lamp, "VERBOSE");
-    zstr_send (glar_lamp, "SOS*");
+        zstr_send (glar_morse, "VERBOSE");
+    zstr_send (glar_morse, "SOS*");
     zclock_sleep (2000);
-    zstr_send (glar_lamp, "K");
-    zactor_destroy (&glar_lamp);
+    zstr_send (glar_morse, "K");
+    zactor_destroy (&glar_morse);
     //  @end
 
     printf ("OK\n");

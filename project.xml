@@ -14,7 +14,7 @@
     <actor name = "glar_panel">LED panel controller</actor>
     <model name = "glar_panel">LED panel controller FSM</model>
 
-    <actor name = "glar_lamp">Lamp controller</actor>
+    <actor name = "glar_morse">Morse lamp controller</actor>
 
     <extra name = "glard_init.sh" />
     <extra name = "rc.local" />
