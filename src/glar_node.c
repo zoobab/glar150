@@ -20,13 +20,6 @@
 #include "glar_classes.h"
 #include "glar_node_fsm.h"      //  Generated state machine engine
 
-//  Lamp SOS sequence (glar_lamp.c)
-#define SOS_START "+?200-?200+?200-?200+?200-?200"\
-                  "+?600-?600+?600-?600+?600-?600"\
-                  "+?200-?200+?200-?200+?200-?200"\
-                  "?1000*"
-#define SOS_STOP  "+100-100+100-100+700-"
-
 //  Structure of our class
 
 struct _glar_node_t {
@@ -176,7 +169,7 @@ join_network_as_robot (glar_node_t *self)
     zyre_start (self->zyre);
     zyre_join (self->zyre, "GLAR");
     //  Show rotating sequence until peer joins
-    zstr_send (self->panel, "100,010,001,");
+    zstr_send (self->panel, "100,010,001,100,010,001,");
     zstr_send (self->panel, "100.010.001.*");
 }
 
@@ -302,11 +295,8 @@ execute_the_command (glar_node_t *self)
 {
     char *command = zmsg_popstr (self->msg);
     zsys_info ("Run command '%s'", command);
-    if (streq (command, "SOS"))
-        zstr_send (self->lamp, SOS_START);
-    else
-    if (streq (command, "/SOS"))
-        zstr_send (self->lamp, SOS_STOP);
+    if (*command == '#')        //  Display command as Morse code
+        zstr_send (self->lamp, command + 1);
     else {
         char *results = s_run (command);
         if (results) {
@@ -378,9 +368,9 @@ signal_peer_left (glar_node_t *self)
 static void
 show_at_rest_sequence (glar_node_t *self)
 {
-    //  At rest sequence, LED 0 slow blinking
+    //  At rest sequence, cycle slowly
     if (!self->console)
-        zstr_send (self->panel, "100::000::*");
+        zstr_send (self->panel, "100::010::001::*");
 }
 
 
@@ -413,8 +403,8 @@ signal_button_off (glar_node_t *self)
 static void
 start_emergency_sequence (glar_node_t *self)
 {
-    zyre_shouts (self->zyre, "GLAR", "%s", "SOS");
-    zstr_send (self->lamp, SOS_START);
+    zyre_shouts (self->zyre, "GLAR", "%s", "#SOS*");
+    zstr_send (self->lamp, "SOS*");
 }
 
 
@@ -425,8 +415,8 @@ start_emergency_sequence (glar_node_t *self)
 static void
 stop_emergency_sequence (glar_node_t *self)
 {
-    zyre_shouts (self->zyre, "GLAR", "%s", "/SOS");
-    zstr_send (self->lamp, SOS_STOP);
+    zyre_shouts (self->zyre, "GLAR", "%s", "#K");
+    zstr_send (self->lamp, "K");
 }
 
 

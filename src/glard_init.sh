@@ -18,9 +18,8 @@ while true; do
             GLARD_UP=0
             #   flash red LED here (error)...
         else
-            #   flash green LED here (waiting)...
-            true
+            blink 1 0.2
         fi
     fi
-    sleep 2
+    sleep 1
 done

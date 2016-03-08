@@ -81,7 +81,6 @@ src:
 code:
 	cd $(srcdir)/src; gsl -topdir:.. -zproject:1 -q glar_node.xml
 	cd $(srcdir)/src; gsl -topdir:.. -zproject:1 -q glar_panel.xml
-	cd $(srcdir)/src; gsl -topdir:.. -zproject:1 -q glar_lamp.xml
 	gsl -target:- project.xml
 
 check-local: src/glar_selftest
