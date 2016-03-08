@@ -77,6 +77,21 @@ glar_morse_destroy (glar_morse_t **self_p)
 }
 
 
+static void
+s_set_morse (bool on)
+{
+    char *value = on? "1": "0";
+    int handle = open ("/sys/class/gpio/gpio1/value", O_WRONLY);
+    if (handle == -1)
+        //  We're probably not on a GL-AR150
+        zsys_info ("set lamp=%s", value);
+    else {
+        if (write (handle, value, strlen (value)) == -1)
+            zsys_error ("can't write to GPIO 1");
+        close (handle);
+    }
+}
+
 //  Convert text string into command sequence
 //  Where:
 //      +   switch on
@@ -116,21 +131,7 @@ s_build_sequence (char *sequence, char *string)
             zsys_error ("glar_morse: unknown command '%c'", letter);
     }
     zsys_info ("Sequence=%s", sequence);
-}
-
-static void
-s_set_morse (bool on)
-{
-    char *value = on? "1": "0";
-    int handle = open ("/sys/class/gpio/gpio1/value", O_WRONLY);
-    if (handle == -1)
-        //  We're probably not on a GL-AR150
-        zsys_info ("set lamp=%s", value);
-    else {
-        if (write (handle, value, strlen (value)) == -1)
-            zsys_error ("can't write to GPIO 1");
-        close (handle);
-    }
+    s_set_morse (false);
 }
 
 static void
