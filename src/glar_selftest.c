@@ -30,7 +30,7 @@ all_tests [] = {
 #ifdef GLAR_BUILD_DRAFT_API
     { "glar_node", glar_node_test },
     { "glar_panel", glar_panel_test },
-    { "glar_lamp", glar_lamp_test },
+    { "glar_morse", glar_morse_test },
 #endif // GLAR_BUILD_DRAFT_API
     {0, 0}          //  Sentinel
 };
@@ -98,7 +98,7 @@ main (int argc, char **argv)
             puts ("Available tests:");
             puts ("    glar_node");
             puts ("    glar_panel");
-            puts ("    glar_lamp");
+            puts ("    glar_morse");
             return 0;
         }
         else

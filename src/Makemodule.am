@@ -20,7 +20,7 @@ if ENABLE_DRAFTS
 include_HEADERS += \
     include/glar_node.h \
     include/glar_panel.h \
-    include/glar_lamp.h
+    include/glar_morse.h
 
 endif
 src_libglar_la_SOURCES = \
@@ -32,7 +32,7 @@ if ENABLE_DRAFTS
 src_libglar_la_SOURCES += \
     src/glar_node.c \
     src/glar_panel.c \
-    src/glar_lamp.c
+    src/glar_morse.c
 
 endif
 

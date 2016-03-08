@@ -9,6 +9,7 @@ while true; do
     if [ $? -eq 0 ]; then
         if [ $GLARD_UP -eq 0 ]; then
             GLARD_UP=1
+            blink 2 0.2
             screen -d -L -m /usr/bin/glard -v
         fi
     else

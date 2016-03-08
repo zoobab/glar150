@@ -1,5 +1,5 @@
 /*  =========================================================================
-    glar_lamp - LED lamp controller
+    glar_morse - Morse lamp controller
 
     Copyright (c) the Contributors as noted in the AUTHORS file.       
     This file is part of the Glar150 Project.
@@ -10,8 +10,8 @@
     =========================================================================
 */
 
-#ifndef GLAR_LAMP_H_INCLUDED
-#define GLAR_LAMP_H_INCLUDED
+#ifndef GLAR_MORSE_H_INCLUDED
+#define GLAR_MORSE_H_INCLUDED
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,27 +19,27 @@ extern "C" {
 
 
 //  @interface
-//  Create new glar_lamp actor instance.
+//  Create new glar_morse actor instance.
 //  @TODO: Describe the purpose of this actor!
 //
-//      zactor_t *glar_lamp = zactor_new (glar_lamp, NULL);
+//      zactor_t *glar_morse = zactor_new (glar_morse, NULL);
 //
-//  Destroy glar_lamp instance.
+//  Destroy glar_morse instance.
 //
-//      zactor_destroy (&glar_lamp);
+//      zactor_destroy (&glar_morse);
 //
 //  Enable verbose logging of commands and activity:
 //
-//      zstr_send (glar_lamp, "VERBOSE");
-//      zsock_wait (glar_lamp);
+//      zstr_send (glar_morse, "VERBOSE");
+//      zsock_wait (glar_morse);
 //
-//  This is the glar_lamp constructor as a zactor_fn;
+//  This is the glar_morse constructor as a zactor_fn;
 GLAR_EXPORT void
-    glar_lamp_actor (zsock_t *pipe, void *args);
+    glar_morse_actor (zsock_t *pipe, void *args);
 
 //  Self test of this actor
 GLAR_EXPORT void
-    glar_lamp_test (bool verbose);
+    glar_morse_test (bool verbose);
 //  @end
 
 #ifdef __cplusplus
