@@ -169,7 +169,7 @@ join_network_as_robot (glar_node_t *self)
     zyre_start (self->zyre);
     zyre_join (self->zyre, "GLAR");
     //  Show rotating sequence until peer joins
-    zstr_send (self->panel, "100,010,001,");
+    zstr_send (self->panel, "100,010,001,100,010,001,");
     zstr_send (self->panel, "100.010.001.*");
 }
 
@@ -368,9 +368,9 @@ signal_peer_left (glar_node_t *self)
 static void
 show_at_rest_sequence (glar_node_t *self)
 {
-    //  At rest sequence, LED 0 slow blinking
+    //  At rest sequence, cycle slowly
     if (!self->console)
-        zstr_send (self->panel, "100::000::*");
+        zstr_send (self->panel, "100::010::001::*");
 }
 
 
