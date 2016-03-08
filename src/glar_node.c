@@ -36,6 +36,7 @@ struct _glar_node_t {
     zactor_t *panel;            //  LED control panel
     zactor_t *console;          //  Command line input
     zactor_t *button;           //  Button monitor
+    zactor_t *lamp;             //  Lamp controller
     zpoller_t *poller;          //  Socket poller
     zmsg_t *msg;                //  Last message we received
     zyre_event_t *event;        //  Last zyre_event received
@@ -101,8 +102,9 @@ glar_node_new (const char *iface, bool console)
     //  Start actors
     self->panel = zactor_new (glar_panel_actor, NULL);
     self->button = zactor_new (s_button_actor, NULL);
+    self->lamp = zactor_new (glar_lamp_actor, NULL);
     self->poller = zpoller_new (
-        zyre_socket (self->zyre), self->panel, self->button, NULL);
+        zyre_socket (self->zyre), self->panel, self->button, self->lamp, NULL);
 
     if (console) {
         self->console = zactor_new (s_console_actor, NULL);
@@ -126,6 +128,7 @@ glar_node_destroy (glar_node_t **self_p)
         zactor_destroy (&self->panel);
         zactor_destroy (&self->console);
         zactor_destroy (&self->button);
+        zactor_destroy (&self->lamp);
         zpoller_destroy (&self->poller);
         zmsg_destroy (&self->msg);
         zyre_event_destroy (&self->event);
@@ -300,10 +303,10 @@ execute_the_command (glar_node_t *self)
     char *command = zmsg_popstr (self->msg);
     zsys_info ("Run command '%s'", command);
     if (streq (command, "SOS"))
-        zstr_send (self->panel, SOS_START);
+        zstr_send (self->lamp, SOS_START);
     else
     if (streq (command, "/SOS"))
-        zstr_send (self->panel, SOS_STOP);
+        zstr_send (self->lamp, SOS_STOP);
     else {
         char *results = s_run (command);
         if (results) {
@@ -411,7 +414,7 @@ static void
 start_emergency_sequence (glar_node_t *self)
 {
     zyre_shouts (self->zyre, "GLAR", "%s", "SOS");
-    zstr_send (self->panel, SOS_START);
+    zstr_send (self->lamp, SOS_START);
 }
 
 
@@ -423,7 +426,7 @@ static void
 stop_emergency_sequence (glar_node_t *self)
 {
     zyre_shouts (self->zyre, "GLAR", "%s", "/SOS");
-    zstr_send (self->panel, SOS_STOP);
+    zstr_send (self->lamp, SOS_STOP);
 }
 
 
