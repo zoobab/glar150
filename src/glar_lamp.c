@@ -181,7 +181,7 @@ s_set_lamp (const char *value)
 static void
 set_lamp_on (glar_lamp_t *self)
 {
-    s_set_lamp ("1\n");
+    s_set_lamp ("1");
 }
 
 
@@ -192,7 +192,7 @@ set_lamp_on (glar_lamp_t *self)
 static void
 set_lamp_off (glar_lamp_t *self)
 {
-    s_set_lamp ("0\n");
+    s_set_lamp ("0");
 }
 
 
