@@ -30,7 +30,7 @@
 int
 main (int argc, char *argv [])
 {
-    puts ("glard v0.2.2 -- GL-AR150 demo'n");
+    puts ("glard v0.3.0 -- GL-AR150 demo'n");
 
     //  Defaults
     bool verbose = false;

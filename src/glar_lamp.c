@@ -12,18 +12,15 @@
 
 /*
 @header
-    glar_lamp - LED lamp controller
+    Converts a character string to Morse code on the lamp. Spaces are turned
+    into word spaces. If a new command arrives, it will always interrupt the
+    existing command. Ending the string with "*" causes it to repeat until
+    interrupted.
 @discuss
-    Commands:
-        + -         Switch lamp on or off
-        nnn         Pause for nnn msec
-        ?nnn        Pause for nnn msec if inactive
-        *           Repeat previous sequence
 @end
 */
 
 #include "glar_classes.h"
-#include "glar_lamp_fsm.h"     //  Generated state machine engine
 
 //  Structure of our actor
 
@@ -32,12 +29,20 @@ struct _glar_lamp_t {
     zpoller_t *poller;          //  Socket poller
     bool terminated;            //  Did caller ask us to quit?
     bool verbose;               //  Verbose logging enabled?
-    fsm_t *fsm;                 //  Our finite state machine
     char *sequence;             //  Current display sequence
     char *seq_ptr;              //  Pointer into current sequence
-    char command;               //  Current command in sequence
-    int selection;              //  LED bitmap, b000...b111
     int timeout;                //  Milliseconds for next poll
+};
+
+#define MORSE_PERIOD    150     //  Single time unit
+
+char *morse_alphabet [] = {
+    "A.-", "B-...", "C-.-.", "D-..", "E.", "F..-.", "G--.",
+    "H....", "I..", "J.---", "K-.-", "L.-..", "M--", "N-.",
+    "O---", "P.--.", "Q--.-", "R.-.", "S...", "T-", "U..-",
+    "V...-", "W.--", "X-..-", "Y-.--", "Z--..",
+    "0-----", "1.----", "2..---", "3...--", "4....-",
+    "5.....", "6-....", "7--...", "8---..", "9----."
 };
 
 
@@ -51,7 +56,6 @@ glar_lamp_new (zsock_t *pipe, void *args)
     assert (self);
     self->pipe = pipe;
     self->poller = zpoller_new (self->pipe, NULL);
-    self->fsm = fsm_new (self);
     self->timeout = -1;
     return self;
 }
@@ -66,10 +70,83 @@ glar_lamp_destroy (glar_lamp_t **self_p)
     assert (self_p);
     if (*self_p) {
         glar_lamp_t *self = *self_p;
-        fsm_destroy (&self->fsm);
         zpoller_destroy (&self->poller);
         free (self);
         *self_p = NULL;
+    }
+}
+
+
+static void
+s_set_lamp (bool on)
+{
+    char *value = on? "1": "0";
+    int handle = open ("/sys/class/gpio/gpio1/value", O_WRONLY);
+    if (handle == -1)
+        //  We're probably not on a GL-AR150
+        zsys_info ("set lamp=%s", value);
+    else {
+        if (write (handle, value, strlen (value)) == -1)
+            zsys_error ("can't write to GPIO 1");
+        close (handle);
+    }
+}
+
+
+//  Show a dot/dash sequence
+
+static void
+s_display_letter (char *sequence)
+{
+    while (*sequence) {
+        if (*sequence == '.') {
+            s_set_lamp (true);
+            zclock_sleep (MORSE_PERIOD);
+            s_set_lamp (false);
+        }
+        else
+        if (*sequence == '-') {
+            s_set_lamp (true);
+            zclock_sleep (3 * MORSE_PERIOD);
+            s_set_lamp (false);
+        }
+        zclock_sleep (MORSE_PERIOD);
+        sequence++;
+    }
+}
+
+
+static void
+s_process_next (glar_lamp_t *self)
+{
+    if (*self->seq_ptr == '\0')
+        return;             //  At end of string, do nothing
+
+    char letter = *self->seq_ptr++;
+    if (isalnum (letter)) {
+        letter = toupper (letter);
+        for (int index = 0; index < sizeof (morse_alphabet) / sizeof (char *); index++) {
+            if (morse_alphabet [index][0] == letter) {
+                s_display_letter (morse_alphabet [index] + 1);
+                self->timeout = 2 * MORSE_PERIOD;
+                break;
+            }
+        }
+    }
+    else
+    if (letter == ' ') {
+        s_set_lamp (false);
+        self->timeout = 7 * MORSE_PERIOD;
+    }
+    else
+    if (letter == '*') {
+        //  Restart sequence
+        self->timeout = 0;
+        self->seq_ptr = self->sequence;
+    }
+    else {
+        zsys_error ("glar_lamp: unknown command '%c'", letter);
+        self->timeout = -1;
     }
 }
 
@@ -97,154 +174,26 @@ glar_lamp_actor (zsock_t *pipe, void *args)
             char *command = zmsg_popstr (request);
             if (self->verbose)
                 zsys_info ("glar_lamp: pipe command=%s", command);
-            if (streq (command, "VERBOSE")) {
+            if (streq (command, "VERBOSE"))
                 self->verbose = true;
-                fsm_set_animate (self->fsm, true);
-            }
             else
             if (streq (command, "$TERM"))
                 self->terminated = true;
             else {
-                //  Whatever came on the pipe is a new command sequence
+                //  Whatever came on the pipe is a new string
                 free (self->sequence);
                 self->sequence = command;
                 self->seq_ptr = self->sequence;
                 command = NULL;
-                get_next_command (self);
+                s_process_next (self);
             }
             zstr_free (&command);
             zmsg_destroy (&request);
         }
         else
-            get_next_command (self);
-
-        //  Execute state machine until it needs an event
-        fsm_execute (self->fsm);
+            s_process_next (self);
     }
     glar_lamp_destroy (&self);
-}
-
-
-//  ---------------------------------------------------------------------------
-//  get_next_command
-//
-
-static void
-get_next_command (glar_lamp_t *self)
-{
-    self->command = *self->seq_ptr;
-    if (self->command == '\0')
-        fsm_set_next_event (self->fsm, finished_event);
-    else {
-        self->seq_ptr++;
-        if (self->command == '+')
-            fsm_set_next_event (self->fsm, lamp_on_event);
-        else
-        if (self->command == '-')
-            fsm_set_next_event (self->fsm, lamp_off_event);
-        else
-        if (self->command == '?') {
-            fsm_set_next_event (self->fsm, maybe_event);
-            self->command = *self->seq_ptr++;
-            assert (isdigit (self->command));
-        }
-        else
-        if (isdigit (self->command))
-            fsm_set_next_event (self->fsm, sleep_event);
-        else
-        if (self->command == '*')
-            fsm_set_next_event (self->fsm, repeat_event);
-        else
-            zsys_error ("Unexpected command '%c', ignored", self->command);
-    }
-}
-
-
-//  ---------------------------------------------------------------------------
-//  set_lamp_on
-//
-
-static void
-s_set_lamp (const char *value)
-{
-    int handle = open ("/sys/class/gpio/gpio1/value", O_WRONLY);
-    if (handle == -1)
-        //  We're probably not on a GL-AR150
-        zsys_info ("set lamp=%s", value);
-    else {
-        if (write (handle, value, strlen (value)) == -1)
-            zsys_error ("can't write to GPIO 1");
-        close (handle);
-    }
-}
-
-static void
-set_lamp_on (glar_lamp_t *self)
-{
-    s_set_lamp ("1");
-}
-
-
-//  ---------------------------------------------------------------------------
-//  set_lamp_off
-//
-
-static void
-set_lamp_off (glar_lamp_t *self)
-{
-    s_set_lamp ("0");
-}
-
-
-//  ---------------------------------------------------------------------------
-//  collect_timeout_value
-//
-
-static void
-collect_timeout_value (glar_lamp_t *self)
-{
-    self->timeout = 0;
-    while (true) {
-        self->timeout = (self->timeout * 10) + (self->command - '0');
-        if (isdigit (*self->seq_ptr))
-            self->command = *self->seq_ptr++;
-        else
-            break;
-    }
-}
-
-
-//  ---------------------------------------------------------------------------
-//  sleep_as_specified
-//
-
-static void
-sleep_as_specified (glar_lamp_t *self)
-{
-    zclock_sleep (self->timeout);
-}
-
-
-//  ---------------------------------------------------------------------------
-//  prepare_blocking_poll
-//
-
-static void
-prepare_blocking_poll (glar_lamp_t *self)
-{
-    self->timeout = -1;
-}
-
-
-//  ---------------------------------------------------------------------------
-//  start_sequence_again
-//
-
-static void
-start_sequence_again (glar_lamp_t *self)
-{
-    assert (self->sequence);
-    self->seq_ptr = self->sequence;
 }
 
 
@@ -260,10 +209,9 @@ glar_lamp_test (bool verbose)
     zactor_t *glar_lamp = zactor_new (glar_lamp_actor, NULL);
     if (verbose)
         zstr_send (glar_lamp, "VERBOSE");
-    zstr_send (glar_lamp, "+300-300+300-300");
-    zstr_send (glar_lamp, "+?300-?300+?300-?300");
-    zclock_sleep (500);
-    zstr_send (glar_lamp, "+300-300");
+    zstr_send (glar_lamp, "SOS*");
+    zclock_sleep (2000);
+    zstr_send (glar_lamp, "K");
     zactor_destroy (&glar_lamp);
     //  @end
 
