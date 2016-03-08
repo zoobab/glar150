@@ -5,5 +5,5 @@
 rmmod gpio_button_hotplug
 echo 8 > /sys/class/gpio/export
 
-/root/monitorgw/daemon.sh &
+/root/glard_init.sh &
 exit 0
