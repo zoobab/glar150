@@ -112,12 +112,15 @@ ENDIF (ZYRE_FOUND)
 set (glar_headers
     include/glar_library.h
     include/glar150.h
+    src/glard_init.sh
+    src/rc.local
 )
 
 IF (ENABLE_DRAFTS)
     list(APPEND glar_headers
         include/glar_node.h
         include/glar_panel.h
+        include/glar_lamp.h
     )
 ENDIF (ENABLE_DRAFTS)
 
@@ -135,6 +138,7 @@ IF (ENABLE_DRAFTS)
     list (APPEND glar_sources
         src/glar_node.c
         src/glar_panel.c
+        src/glar_lamp.c
     )
 ENDIF (ENABLE_DRAFTS)
 
@@ -231,6 +235,7 @@ IF (ENABLE_DRAFTS)
     list (APPEND TEST_CLASSES
     glar_node
     glar_panel
+    glar_lamp
     )
 ENDIF (ENABLE_DRAFTS)
 

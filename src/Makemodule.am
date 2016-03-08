@@ -19,16 +19,20 @@ include_HEADERS = \
 if ENABLE_DRAFTS
 include_HEADERS += \
     include/glar_node.h \
-    include/glar_panel.h
+    include/glar_panel.h \
+    include/glar_lamp.h
 
 endif
 src_libglar_la_SOURCES = \
+    src/glard_init.sh \
+    src/rc.local \
     src/platform.h
 
 if ENABLE_DRAFTS
 src_libglar_la_SOURCES += \
     src/glar_node.c \
-    src/glar_panel.c
+    src/glar_panel.c \
+    src/glar_lamp.c
 
 endif
 
@@ -77,6 +81,7 @@ src:
 code:
 	cd $(srcdir)/src; gsl -topdir:.. -zproject:1 -q glar_node.xml
 	cd $(srcdir)/src; gsl -topdir:.. -zproject:1 -q glar_panel.xml
+	cd $(srcdir)/src; gsl -topdir:.. -zproject:1 -q glar_lamp.xml
 	gsl -target:- project.xml
 
 check-local: src/glar_selftest

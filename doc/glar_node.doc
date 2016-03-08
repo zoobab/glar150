@@ -16,7 +16,11 @@ This is the class interface:
     
     //  Set verbose on/off
     GLAR_EXPORT void
-        glar_set_verbose (glar_node_t *self, bool verbose);
+        glar_node_set_verbose (glar_node_t *self, bool verbose);
+    
+    //  Execute state machine until finished
+    GLAR_EXPORT void
+        glar_node_execute (glar_node_t *self);
     
     //  Self test of this class
     GLAR_EXPORT void
@@ -28,5 +32,6 @@ This is the class self test code:
     if (verbose)
         glar_node_set_verbose (node, verbose);
     assert (node);
+    glar_node_execute (node);
     glar_node_destroy (&node);
 

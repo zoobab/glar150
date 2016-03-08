@@ -1,15 +1,12 @@
-#### glar_panel - LED panel controller
+#### glar_lamp - Lamp controller
 
-glar_panel - LED panel controller
+glar_lamp - LED lamp controller
 
 Commands:
-
-nnn         3-LED bitmap, n is 0 or 1 left to right
-,           Pause for 100msec
-;           Pause for 500msec
-.           Pause for 100msec if inactive
-:           Pause for 500msec if inactive
-*           Repeat previous sequence
+    + -         Switch lamp on or off
+    nnn         Pause for nnn msec
+    ?nnn        Pause for nnn msec if inactive
+    *           Repeat previous sequence
 
 This is the class interface:
 
@@ -37,12 +34,12 @@ This is the class interface:
 
 This is the class self test code:
 
-    zactor_t *glar_panel = zactor_new (glar_panel_actor, NULL);
+    zactor_t *glar_lamp = zactor_new (glar_lamp_actor, NULL);
     if (verbose)
-        zstr_send (glar_panel, "VERBOSE");
-    zstr_send (glar_panel, "100,010,001,");
-    zstr_send (glar_panel, "100.010.001.*");
-    zclock_sleep (800);
-    zstr_send (glar_panel, "111,000,");
-    zactor_destroy (&glar_panel);
+        zstr_send (glar_lamp, "VERBOSE");
+    zstr_send (glar_lamp, "+300-300+300-300");
+    zstr_send (glar_lamp, "+?300-?300+?300-?300");
+    zclock_sleep (500);
+    zstr_send (glar_lamp, "+300-300");
+    zactor_destroy (&glar_lamp);
 

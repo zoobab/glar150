@@ -2,7 +2,14 @@
 
 glard - Glar150 daemon
 
-Please add @discuss section in ../src/glard.c.
+Runs a single instance of a Glar150 node. The node can be a robot or
+a console depending on the command line arguments.
+
+glard [options] ...
+  --help / -h            this help
+  --verbose / -v         verbose test output
+  --interface / -i       use this interface
+  --console / -c         remote control console
 
 This is the class interface:
 

@@ -30,7 +30,7 @@
     </event>
     <event name = "button on" next = "emergency">
         <action name = "signal button on" />
-        <action name = "show emergency sequence" />
+        <action name = "start emergency sequence" />
         <action name = "check for activity" />
     </event>
 </state>
@@ -38,11 +38,11 @@
 <state name = "emergency" inherit = "defaults">
     <event name = "button off" next = "as robot">
         <action name = "signal button off" />
+        <action name = "stop emergency sequence" />
         <action name = "show at rest sequence" />
         <action name = "wait for activity" />
     </event>
     <event name = "nothing">
-        <action name = "show emergency sequence" />
         <action name = "check for activity" />
     </event>
     <event name = "whisper">

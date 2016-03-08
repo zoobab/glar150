@@ -20,6 +20,13 @@
 #include "glar_classes.h"
 #include "glar_node_fsm.h"      //  Generated state machine engine
 
+//  Lamp SOS sequence (glar_lamp.c)
+#define SOS_START "+?200-?200+?200-?200+?200-?200"\
+                  "+?600-?600+?600-?600+?600-?600"\
+                  "+?200-?200+?200-?200+?200-?200"\
+                  "?1000*"
+#define SOS_STOP  "+100-100+100-100+700-"
+
 //  Structure of our class
 
 struct _glar_node_t {
@@ -55,8 +62,12 @@ s_button_actor (zsock_t *pipe, void *args)
 {
     zsock_signal (pipe, 0);             //  Tell caller we're ready
     int last_value = 0;                 //  Assume button is off
+    zpoller_t *poller = zpoller_new (pipe, NULL);
 
     while (!zsys_interrupted) {
+        if (zpoller_wait (poller, 250))
+            break;                      //  Caller told us to terminate
+
         int handle = open ("/sys/class/gpio/gpio8/value", O_RDONLY);
         if (handle != -1) {
             char value [2] = { 0, 0 };
@@ -67,8 +78,8 @@ s_button_actor (zsock_t *pipe, void *args)
             }
             close (handle);
         }
-        zclock_sleep (250);
     }
+    zpoller_destroy (&poller);
 }
 
 
@@ -288,19 +299,26 @@ execute_the_command (glar_node_t *self)
 {
     char *command = zmsg_popstr (self->msg);
     zsys_info ("Run command '%s'", command);
-    char *results = s_run (command);
-    if (results) {
-        zsys_info ("System '%s' OK", command);
-        //  Flash LED 1 once slowly
-        zstr_send (self->panel, "010;000;");
-        zyre_whispers (self->zyre, zyre_event_peer_uuid (self->event), "%s", results);
-        free (results);
-    }
+    if (streq (command, "SOS"))
+        zstr_send (self->panel, SOS_START);
+    else
+    if (streq (command, "/SOS"))
+        zstr_send (self->panel, SOS_STOP);
     else {
-        zsys_info ("System '%s' FAIL", command);
-        //  Flash LED 2 once slowly
-        zstr_send (self->panel, "001;000;");
-        zyre_whispers (self->zyre, zyre_event_peer_uuid (self->event), "%s", "failed");
+        char *results = s_run (command);
+        if (results) {
+            zsys_info ("System '%s' OK", command);
+            //  Flash LED 1 once slowly
+            zstr_send (self->panel, "010;000;");
+            zyre_whispers (self->zyre, zyre_event_peer_uuid (self->event), "%s", results);
+            free (results);
+        }
+        else {
+            zsys_info ("System '%s' FAIL", command);
+            //  Flash LED 2 once slowly
+            zstr_send (self->panel, "001;000;");
+            zyre_whispers (self->zyre, zyre_event_peer_uuid (self->event), "%s", "failed");
+        }
     }
     free (command);
 }
@@ -386,16 +404,26 @@ signal_button_off (glar_node_t *self)
 
 
 //  ---------------------------------------------------------------------------
-//  show_emergency_sequence
+//  start_emergency_sequence
 //
 
 static void
-show_emergency_sequence (glar_node_t *self)
+start_emergency_sequence (glar_node_t *self)
 {
-    char *sequence = "blink 3 0.2; blink 3 0.6; blink 3 0.2";
-    zyre_shouts (self->zyre, "GLAR", "%s", sequence);
-    char *results = s_run (sequence);
-    free (results);
+    zyre_shouts (self->zyre, "GLAR", "%s", "SOS");
+    zstr_send (self->panel, SOS_START);
+}
+
+
+//  ---------------------------------------------------------------------------
+//  stop_emergency_sequence
+//
+
+static void
+stop_emergency_sequence (glar_node_t *self)
+{
+    zyre_shouts (self->zyre, "GLAR", "%s", "/SOS");
+    zstr_send (self->panel, SOS_STOP);
 }
 
 
@@ -424,8 +452,8 @@ glar_node_test (bool verbose)
     if (verbose)
         glar_node_set_verbose (node, verbose);
     assert (node);
-    glar_node_execute (node);
     glar_node_destroy (&node);
     //  @end
     printf ("OK\n");
 }
+

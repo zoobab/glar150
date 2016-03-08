@@ -4,6 +4,11 @@
 # activate the Button as a normal GPIO
 rmmod gpio_button_hotplug
 echo 8 > /sys/class/gpio/export
+echo in > /sys/class/gpio/gpio8/direction
+
+# activate GPIO 1 for lamp control
+echo 1 > /sys/class/gpio/export
+echo out > /sys/class/gpio/gpio1/direction
 
 /root/glard_init.sh &
 exit 0

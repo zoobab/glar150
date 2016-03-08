@@ -30,6 +30,7 @@ all_tests [] = {
 #ifdef GLAR_BUILD_DRAFT_API
     { "glar_node", glar_node_test },
     { "glar_panel", glar_panel_test },
+    { "glar_lamp", glar_lamp_test },
 #endif // GLAR_BUILD_DRAFT_API
     {0, 0}          //  Sentinel
 };
@@ -88,7 +89,7 @@ main (int argc, char **argv)
         else
         if (streq (argv [argn], "--number")
         ||  streq (argv [argn], "-n")) {
-            puts ("2");
+            puts ("3");
             return 0;
         }
         else
@@ -97,6 +98,7 @@ main (int argc, char **argv)
             puts ("Available tests:");
             puts ("    glar_node");
             puts ("    glar_panel");
+            puts ("    glar_lamp");
             return 0;
         }
         else

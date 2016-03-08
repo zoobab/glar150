@@ -27,6 +27,8 @@ noinst_LTLIBRARIES =
 TESTS =
 
 EXTRA_DIST = \
+    src/glard_init.sh \
+    src/rc.local \
     README.md \
     src/glar_classes.h
 
