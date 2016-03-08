@@ -9,3 +9,4 @@ We use a cluster of bots, each with its own external lamp, and battery pack. The
 Each bot starts by connecting to the Zyre network and joining the `glar150` group. The bots then talk to each other and to a controller, to demonstrate their capabilities.
  
  
+ 
