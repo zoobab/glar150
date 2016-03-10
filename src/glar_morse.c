@@ -27,6 +27,7 @@
 struct _glar_morse_t {
     zsock_t *pipe;              //  Actor command pipe
     zpoller_t *poller;          //  Socket poller
+    zactor_t *panel;            //  LED control panel
     bool terminated;            //  Did caller ask us to quit?
     bool verbose;               //  Verbose logging enabled?
     char sequence [1024];       //  Current display sequence
@@ -57,6 +58,7 @@ glar_morse_new (zsock_t *pipe, void *args)
     self->pipe = pipe;
     self->poller = zpoller_new (self->pipe, NULL);
     self->timeout = -1;
+    self->panel = zactor_new (glar_panel_actor, NULL);
     return self;
 }
 
@@ -71,6 +73,7 @@ glar_morse_destroy (glar_morse_t **self_p)
     if (*self_p) {
         glar_morse_t *self = *self_p;
         zpoller_destroy (&self->poller);
+        zactor_destroy (&self->panel);
         free (self);
         *self_p = NULL;
     }
@@ -78,7 +81,7 @@ glar_morse_destroy (glar_morse_t **self_p)
 
 
 static void
-s_set_morse (bool on)
+s_set_lamp (glar_morse_t *self, bool on)
 {
     char *value = on? "1": "0";
     int handle = open ("/sys/class/gpio/gpio1/value", O_WRONLY);
@@ -90,6 +93,8 @@ s_set_morse (bool on)
             zsys_error ("can't write to GPIO 1");
         close (handle);
     }
+    //  Flash LEDs at same time as lamp
+    zstr_send (self->panel, on? "111": "000");
 }
 
 //  Convert text string into command sequence
@@ -100,9 +105,9 @@ s_set_morse (bool on)
 //      *   repeat sequence from start
 
 static void
-s_build_sequence (char *sequence, char *string)
+s_build_sequence (glar_morse_t *self, char *string)
 {
-    sequence [0] = 0;
+    self->sequence [0] = 0;
     while (*string) {
         char letter = toupper (*string++);
         if (isalnum (letter)) {
@@ -111,27 +116,30 @@ s_build_sequence (char *sequence, char *string)
                     char *bip_ptr = morse_alphabet [index] + 1;
                     while (*bip_ptr) {
                         if (*bip_ptr == '.')
-                            strcat (sequence, "+.-.");
+                            strcat (self->sequence, "+.-.");
                         else
-                            strcat (sequence, "+...-.");
+                            strcat (self->sequence, "+...-.");
                         bip_ptr++;
                     }
-                    strcat (sequence, "..");
+                    strcat (self->sequence, "..");
                     break;
                 }
             }
         }
         else
         if (letter == ' ')
-            strcat (sequence, ".....");
+            //  Between words, a seven-dot pause
+            strcat (self->sequence, ".....");
         else
         if (letter == '*')
-            strcat (sequence, "*");
+            //  Repeat phrase, after a seven-dot pause
+            strcat (self->sequence, ".....*");
         else
             zsys_error ("glar_morse: unknown command '%c'", letter);
     }
-    zsys_info ("Sequence=%s", sequence);
-    s_set_morse (false);
+    zsys_info ("Sequence=%s", self->sequence);
+    self->seq_ptr = self->sequence;
+    s_set_lamp (self, false);
 }
 
 static void
@@ -143,10 +151,10 @@ s_show_sequence (glar_morse_t *self)
     while (*self->seq_ptr) {
         char command = *self->seq_ptr++;
         if (command == '+')
-            s_set_morse (true);
+            s_set_lamp (self, true);
         else
         if (command == '-')
-            s_set_morse (false);
+            s_set_lamp (self, false);
         else
         if (command == '*')
             self->seq_ptr = self->sequence;
@@ -183,11 +191,10 @@ glar_morse_actor (zsock_t *pipe, void *args)
             else
             if (streq (command, "$TERM"))
                 self->terminated = true;
-            else {
+            else
                 //  Whatever came on the pipe is a new sequence
-                s_build_sequence (self->sequence, command);
-                self->seq_ptr = self->sequence;
-            }
+                s_build_sequence (self, command);
+
             zstr_free (&command);
             zmsg_destroy (&request);
         }

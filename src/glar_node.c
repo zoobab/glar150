@@ -375,28 +375,6 @@ show_at_rest_sequence (glar_node_t *self)
 
 
 //  ---------------------------------------------------------------------------
-//  signal_button_on
-//
-
-static void
-signal_button_on (glar_node_t *self)
-{
-    zstr_send (self->panel, "111,000,111,000,111,000,111,000,");
-}
-
-
-//  ---------------------------------------------------------------------------
-//  signal_button_off
-//
-
-static void
-signal_button_off (glar_node_t *self)
-{
-    zstr_send (self->panel, "111;000;");
-}
-
-
-//  ---------------------------------------------------------------------------
 //  start_emergency_sequence
 //
 
