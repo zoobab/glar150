@@ -2,23 +2,23 @@
 
 ## Background
 
-We bought a bunch of [GL-AR150 OpenWRT routers](http://www.gl-inet.com/ar150/) off Amazon.com, and wondered what fun we could have with these. These are tiny, cheap WiFi servers ($25). They look cool, with an antenna that makes me think of my old Ericsson R520m. Now that was a phone you could use in self-defense!
+We bought a bunch of [GL-AR150 OpenWRT routers](http://www.gl-inet.com/ar150/) off Amazon.com, and wondered what fun we could have with these. These are tiny, cheap WiFi servers ($25). They look cool, with an antenna that makes me think of my old metal-body Ericsson R520m. Now that was a phone you could crack skulls with!
 
 ## Exploring the Hardware
 
-The Glar has no on/off switch. You provide power, it comes on. You remove power, it goes off. This works especially well with modern power packs that have auto power-on. It has a reset switch you can hold and press to reset your router configuration. It has a rocker switch, status lights, a USB port (controllable power via GPIO), an external antenna in the version we chose, and two RJ45 sockets. All in a nice simple case. Nice!
+Unlike the Ericssons of yore, the GL-AR150 (which I will call the "Glar" from now on, or "Glar 150" if you want to be specific) has no on/off switch. You provide power, it comes on. You remove power, it goes off. This works especially well with modern power packs that have auto power-on. About half the power packs we tested have "auto power-on and then random power-off when no-one's looking", so be warned. The Glar has a reset switch you can hold and press to reset your router configuration. It also has a rocker switch, status lights, a USB port (controllable power via GPIO), an external antenna in the version we chose, and two RJ45 sockets. All in a nice simple case. Nice!
 
 ### Seeing Red
 
 Our first experiment was to run [Malamute](https://github.com/zeromq/malamute), a tiny message broker. This worked nicely. Building for OpenWRT takes a little cross-compiling black magic, yet our ZeroMQ software stack runs perfectly on this box, as it should.
 
-Next we wondered, could we attach large LEDs to those I/O pins? A real computer has flashing lights. Turns out the red rear lights from my kids' bikes take 3V, and a quick test showed the GL-AR150 (which I will call the "Glar" from now on) could power these easily. Luckily my kids weren't paying attention, so I nabbed the lamps and we opened them up.
+Next we wondered, could we attach large LEDs to those I/O pins? A real computer has flashing lights. Turns out the red rear lights from my kids' bikes take 3V, and a quick test showed the Glar could power these easily. Luckily my kids weren't paying attention, so I nabbed the lamps and we opened them up.
 
-These bike lamps cost EUR 1.29 each, so we didn't feel bad about cutting out the on/off button and soldering wires directly onto the PCB. Let me explain briefly how we power and control the lamp. We have two wires, one feeds the PCB with power. The other takes the used electrons from the PCB and sends them to the recycle bin we call "ground." The Glar opens real easy, just pull off the bottom cover and then ease out the PCB.
+These bike lamps cost EUR 1.39 each, so we didn't feel bad about cutting out the on/off button and soldering wires directly onto the PCB. Let me explain briefly how we power and control the lamp. We have two wires, one feeds the PCB with power. The other takes the used electrons from the PCB and sends them to the recycle bin we call "ground." The Glar opens real easy, just pull off the bottom cover and then ease out the PCB.
 
 Most of the Glar's already tiny volume is used up by legacy connectors. If we didn't have those two network plugs and the USB slot, it would fit into a case a quarter of the size. The Glar has 16MB flash and 64MB RAM, and is powered by a [32-bit MIPS core](http://www.gl-inet.com/ar-specifications/). It's not meant for heavy duty. The CPU technology is a decade old. It is cheap and low power.
 
-Let me quantify this. When we tested Malamute, we compared a Glar to a modern laptop. The workload is a mix of network I/O, memory copying, and computation. We tested on Ethernet, since it is so easy to saturate WiFi that it's useless for comparisons. The laptop can push around 200,000 messages per second between publishers and subscripts. The Glar can do around 2,000 per second.
+Let me quantify this. When we tested Malamute, we compared a Glar to a modern laptop. The workload is a mix of network I/O, memory copying, and computation. We tested on Ethernet, since it is so easy to saturate WiFi that it's useless for comparisons. The laptop can push around 200,000 messages per second between publishers and subscribers. The Glar can do around 5,000 per second.
 
 As for power consumption, a laptop draws 10-20 Watts, whereas the Glar draws under 1 Watt. What this means in practice is that the Glar will run for 12 hours off a small LiPo battery pack. I opened up one of our little battery packs. Inside there's what looks like a camera battery. This would fit neatly inside a Glar case, methinks. Aha, looks like GLI are developing [a battery-powered version](http://www.gl-inet.com/m9331-mifi/).
 
@@ -69,7 +69,7 @@ if (handle != -1) {
 }
 ```
 
-It is possible (we think) to unload the LED module, and then control these lights through the GPIO interface, as we did for GPIO1. Note that the AR150 has 16 GPIOs of which eight are standard 2.54mm (0.1") physical pins. The other eight are wired to various bits and pieces like the rocker switch.
+It is possible (we think) to unload the LED module, and then control these lights through the GPIO interface, as we did for GPIO1. This would make the code more consistent. It's not worth the effort though. Note that the Glar has 16 GPIOs of which eight are standard 2.54mm (0.1") physical pins. The other eight are wired to various bits and pieces like the rocker switch.
 
 ### The Rocker Switch
 
@@ -150,7 +150,9 @@ I mean, it's possible to do a lot of async work in a single thread. You need to 
 
 The old `libzmq` library API is as friendly as a squad of soldiers in unmarked uniforms brandishing shiny AK-74Ms. It does the job, yet you don't really want to be there when it happens. A much nicer API is [CZMQ](http://czmq.zeromq.org), which hides the cold brutality that is high-performance messaging under a cloak of charm.
 
-One thing CZMQ gives us, which turns out to be really useful in our demo, are *actors*. An actor is a thread that you talk to over a ZeroMQ socket.
+## The World is Our Stage
+
+One thing CZMQ gives us, which turns out to be really useful in our demo, are *actors*. An actor is a thread that you talk to over a ZeroMQ socket. It is not a complete operating system like Erlang or Akka actors. Yet it is a really neat way of dealing with concurrency.
 
 Let me give one example of where we need an actor. When we run as a console, we talk to a number of Glars (aka the "Robot Army"). Our UI is simple: take one command line from the user, blast it at the robot army. The problem is that `fgets` is blocking. What we need is a non-blocking `fgets` that waits for input, and lets us talk to the robot army at the same time.
 
@@ -193,16 +195,163 @@ We can read one command from it (a line of text the user typed) like this:
 char *command = zstr_recv (console);
 ```
 
-Though in practice we use a `zpoller` object to wait for input on several actors at once.
+Though in practice we use a `zpoller_t` object to wait on several actors at once:
 
-(to be completed)
+```
+//  Create a set of actors and a poller
+zactor_t *panel = zactor_new (panel_actor, NULL);
+zactor_t *morse = zactor_new (morse_actor, NULL);
+zactor_t *console = zactor_new (console_actor, NULL);
+zpoller_t *poller = zpoller_new (panel, morse, console, NULL);
 
+//  Deal with messages from actors, until we get Ctrl-C
+while (!zsys_interrupted) {
+    zactor_t *which = (zactor_t *) zpoller_wait (poller, -1);
+    if (which)
+        break;      //  Nothing, so poll was interrupted
+    zmsg_t *msg = zmsg_recv (which);
+    ...
+}
+//  Destroy our objects
+zpoller_destroy (&poller);
+zactor_destroy (&panel);
+zactor_destroy (&morse);
+zactor_destroy (&console);
+```
 
+### Reading The Button State
 
+Let me show some an actor that does GPIO. We'll look at the actor that reads the button state. What the code has to do is quite simple: check the button and tell the main thread when the button changes from off to on, or vice-versa.
 
+There is no async I/O on the button so our code is brutal: wait for a short time, check the button state, see if it changed, and repeat until the process ends.
 
+Here is the actor function for that:
 
+```
+static void
+s_button_actor (zsock_t *pipe, void *args)
+{
+    zsock_signal (pipe, 0);             //  Tell caller we're ready
+    int last_value = 0;                 //  Assume button is off
+    zpoller_t *poller = zpoller_new (pipe, NULL);
 
+    while (!zsys_interrupted) {
+        if (zpoller_wait (poller, 250))
+            break;                      //  Caller told us to terminate
 
+        int handle = open ("/sys/class/gpio/gpio8/value", O_RDONLY);
+        if (handle != -1) {
+            char value [2] = { 0, 0 };
+            if (read (handle, value, 1) == 1
+            &&  last_value != value [0] - '0') {
+                last_value = value [0] - '0';
+                zstr_send (pipe, value);
+            }
+            close (handle);
+        }
+    }
+    zpoller_destroy (&poller);
+}
+```
 
+### Morse Code Actor
 
+A separate thread (an actor, `[glar_morse](https://github.com/CodeJockey/glar150/blob/master/src/glar_morse.c)`) turns commands into Morse code and blinks them on the large red lamp.
+
+Using an actor here means we can send off a Morse sequence and let it run in the background, while doing other work.
+
+## Finite State Machines
+
+With our actor framework we have events like console input, Zyre events, and button change events coming into a single main thread. The main thread, however, has several states. We could be running as a console, or as a robot, and we could be in emergency state.
+
+A nice and robust way to handle events in different states is to use a `finite state machine`. This is a logical model that specifies each state, and each event. Here is the full state machine for the main thread. We write it as XML, so that we can use the [GSL code generator](https://github.com/imatix/gsl) to turn it into C code:
+
+```
+<class name = "glar_node" script = "fsm_c">
+
+<state name = "start">
+    <event name = "console" next = "as console">
+        <action name = "join network as console" />
+        <action name = "wait for activity" />
+    </event>
+    <event name = "robot" next = "as robot">
+        <action name = "join network as robot" />
+        <action name = "wait for activity" />
+    </event>
+</state>
+
+<state name = "as console" inherit = "defaults">
+    <event name = "console command">
+        <action name = "shout command to robots" />
+        <action name = "wait for activity" />
+    </event>
+    <event name = "whisper">
+        <action name = "print command results" />
+        <action name = "wait for activity" />
+    </event>
+</state>
+
+<state name = "as robot" inherit = "defaults">
+    <event name = "shout">
+        <action name = "execute the command" />
+        <action name = "show at rest sequence" />
+        <action name = "wait for activity" />
+    </event>
+    <event name = "button on" next = "emergency">
+        <action name = "start emergency sequence" />
+        <action name = "check for activity" />
+    </event>
+</state>
+
+<state name = "emergency" inherit = "defaults">
+    <event name = "button off" next = "as robot">
+        <action name = "stop emergency sequence" />
+        <action name = "show at rest sequence" />
+        <action name = "wait for activity" />
+    </event>
+    <event name = "nothing">
+        <action name = "check for activity" />
+    </event>
+    <event name = "whisper">
+        <action name = "check for activity" />
+    </event>
+</state>
+
+<state name = "defaults">
+    <event name = "finished">
+        <action name = "leave network" />
+    </event>
+    <event name = "join">
+        <action name = "signal peer joined" />
+        <action name = "show at rest sequence" />
+        <action name = "wait for activity" />
+    </event>
+    <event name = "leave">
+        <action name = "signal peer left" />
+        <action name = "show at rest sequence" />
+        <action name = "wait for activity" />
+    </event>
+    <event name = "other">
+        <action name = "wait for activity" />
+    </event>
+    <event name = "button on">
+        <action name = "show at rest sequence" />
+        <action name = "wait for activity" />
+    </event>
+    <event name = "button off">
+        <action name = "show at rest sequence" />
+        <action name = "wait for activity" />
+    </event>
+    <event name = "*">
+        <action name = "wait for activity" />
+    </event>
+</state>
+
+</class>
+```
+
+The [code generator](https://github.com/CodeJockey/glar150/blob/master/src/fsm_c.gsl) is a GSL script that takes the XML and issues C code, a long `case` statement in our case. There are other ways to make FSMs, especially using tables. This is the simplest, and fast enough.
+
+## Building the Code
+
+Still to be written.
