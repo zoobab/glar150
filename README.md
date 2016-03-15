@@ -116,7 +116,7 @@ zyre_join (zyre, "GLAR");
 
 This kicks off a Zyre node and joins the GLAR group so it can chat to other nodes in the same group.
 
-Building Zyre is a little more challenging. I don't actually know how this works, since my colleague Zoobab does this. He takes libzmq, CZMQ, Zyre, and the Glar150 code, waves his hands, and magic happens. When he gets back from lunch with my sandwich (it's been about three days now and I'm starting to get a little worried, and also hungry), we'll write some explanations.
+Building Zyre for OpenWRT is a little more challenging. I don't actually know how this works, since my colleague Zoobab does this. He takes libzmq, CZMQ, Zyre, and the Glar150 code, waves his hands, and magic happens. When he gets back from lunch with my sandwich (it's been about three days now and I'm starting to get a little worried, and also hungry), we'll write some explanations.
 
 Anyhow, once Zyre is up and running it is trivial to send a message to all nodes:
 
