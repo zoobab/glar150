@@ -77,10 +77,8 @@ static void shout_command_to_robots (glar_node_t *self);
 static void print_command_results (glar_node_t *self);
 static void execute_the_command (glar_node_t *self);
 static void show_at_rest_sequence (glar_node_t *self);
-static void signal_button_on (glar_node_t *self);
 static void start_emergency_sequence (glar_node_t *self);
 static void check_for_activity (glar_node_t *self);
-static void signal_button_off (glar_node_t *self);
 static void stop_emergency_sequence (glar_node_t *self);
 static void leave_network (glar_node_t *self);
 static void signal_peer_joined (glar_node_t *self);
@@ -314,12 +312,6 @@ fsm_execute (fsm_t *self)
             else
             if (self->event == button_on_event) {
                 if (!self->exception) {
-                    //  signal_button_on
-                    if (self->animate)
-                        zsys_debug ("glar_node:             $ signal_button_on");
-                    signal_button_on (self->parent);
-                }
-                if (!self->exception) {
                     //  show_at_rest_sequence
                     if (self->animate)
                         zsys_debug ("glar_node:             $ show_at_rest_sequence");
@@ -334,12 +326,6 @@ fsm_execute (fsm_t *self)
             }
             else
             if (self->event == button_off_event) {
-                if (!self->exception) {
-                    //  signal_button_off
-                    if (self->animate)
-                        zsys_debug ("glar_node:             $ signal_button_off");
-                    signal_button_off (self->parent);
-                }
                 if (!self->exception) {
                     //  show_at_rest_sequence
                     if (self->animate)
@@ -387,12 +373,6 @@ fsm_execute (fsm_t *self)
             }
             else
             if (self->event == button_on_event) {
-                if (!self->exception) {
-                    //  signal_button_on
-                    if (self->animate)
-                        zsys_debug ("glar_node:             $ signal_button_on");
-                    signal_button_on (self->parent);
-                }
                 if (!self->exception) {
                     //  start_emergency_sequence
                     if (self->animate)
@@ -471,12 +451,6 @@ fsm_execute (fsm_t *self)
             else
             if (self->event == button_off_event) {
                 if (!self->exception) {
-                    //  signal_button_off
-                    if (self->animate)
-                        zsys_debug ("glar_node:             $ signal_button_off");
-                    signal_button_off (self->parent);
-                }
-                if (!self->exception) {
                     //  show_at_rest_sequence
                     if (self->animate)
                         zsys_debug ("glar_node:             $ show_at_rest_sequence");
@@ -502,12 +476,6 @@ fsm_execute (fsm_t *self)
         else
         if (self->state == emergency_state) {
             if (self->event == button_off_event) {
-                if (!self->exception) {
-                    //  signal_button_off
-                    if (self->animate)
-                        zsys_debug ("glar_node:             $ signal_button_off");
-                    signal_button_off (self->parent);
-                }
                 if (!self->exception) {
                     //  stop_emergency_sequence
                     if (self->animate)
@@ -610,12 +578,6 @@ fsm_execute (fsm_t *self)
             else
             if (self->event == button_on_event) {
                 if (!self->exception) {
-                    //  signal_button_on
-                    if (self->animate)
-                        zsys_debug ("glar_node:             $ signal_button_on");
-                    signal_button_on (self->parent);
-                }
-                if (!self->exception) {
                     //  show_at_rest_sequence
                     if (self->animate)
                         zsys_debug ("glar_node:             $ show_at_rest_sequence");
@@ -702,12 +664,6 @@ fsm_execute (fsm_t *self)
             else
             if (self->event == button_on_event) {
                 if (!self->exception) {
-                    //  signal_button_on
-                    if (self->animate)
-                        zsys_debug ("glar_node:             $ signal_button_on");
-                    signal_button_on (self->parent);
-                }
-                if (!self->exception) {
                     //  show_at_rest_sequence
                     if (self->animate)
                         zsys_debug ("glar_node:             $ show_at_rest_sequence");
@@ -722,12 +678,6 @@ fsm_execute (fsm_t *self)
             }
             else
             if (self->event == button_off_event) {
-                if (!self->exception) {
-                    //  signal_button_off
-                    if (self->animate)
-                        zsys_debug ("glar_node:             $ signal_button_off");
-                    signal_button_off (self->parent);
-                }
                 if (!self->exception) {
                     //  show_at_rest_sequence
                     if (self->animate)
