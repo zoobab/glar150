@@ -49,7 +49,7 @@ if (handle != -1) {
 }
 ```
 
-### Blinking Lichten
+### Blinken Lichten
 
 The Glar also has three status LEDs. You can play with these using GPIO (they are GPIO 13, 15, and 0 (aka 16)). There is a preloaded kernel module that controls them, so we don't use the raw GPIO interface. Instead, we speak to this module by writing to a sysfs system device:
 
@@ -152,7 +152,7 @@ The old `libzmq` library API is as friendly as a squad of soldiers in unmarked u
 
 ## The World is Our Stage
 
-One thing CZMQ gives us, which turns out to be really useful in our demo, are *actors*. An actor is a thread that you talk to over a ZeroMQ socket. It is not a complete operating system like Erlang or Akka actors. Yet it is a really neat way of dealing with concurrency.
+One thing CZMQ gives us, which turns out to be really useful in our demo, are *actors*. An actor is a thread that you talk to over a ZeroMQ socket. It is not a complete actor system like Erlang or Akka actors. Yet it is a really neat way of dealing with concurrency.
 
 Let me give one example of where we need an actor. When we run as a console, we talk to a number of Glars (aka the "Robot Army"). Our UI is simple: take one command line from the user, blast it at the robot army. The problem is that `fgets` is blocking. What we need is a non-blocking `fgets` that waits for input, and lets us talk to the robot army at the same time.
 
