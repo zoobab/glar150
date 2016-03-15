@@ -256,7 +256,7 @@ s_button_actor (zsock_t *pipe, void *args)
 
 ### Morse Code Actor
 
-A separate thread (an actor, `[glar_morse](https://github.com/CodeJockey/glar150/blob/master/src/glar_morse.c)`) turns commands into Morse code and blinks them on the large red lamp.
+A separate thread (an actor, [glar_morse](https://github.com/CodeJockey/glar150/blob/master/src/glar_morse.c)) turns commands into Morse code and blinks them on the large red lamp.
 
 Using an actor here means we can send off a Morse sequence and let it run in the background, while doing other work.
 
