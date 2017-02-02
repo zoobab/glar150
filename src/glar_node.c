@@ -35,19 +35,56 @@ struct _glar_node_t {
     zyre_event_t *event;        //  Last zyre_event received
 };
 
+static int
+s_handle_console (zloop_t *loop, zmq_pollitem_t *item, void *arg)
+{
+    char command [1024];
+    if (fgets (command, sizeof (command), stdin)) {
+        //  Discard final newline
+        command [strlen (command) - 1] = 0;
+        if (*command)
+            zstr_send ((zsock_t *)arg, command);
+    }
+
+    return 0;
+}
+
+static int
+s_handle_pipe (zloop_t *loop, zsock_t *reader, void *arg)
+{
+    int terminated = 0;
+    zmsg_t *request = zmsg_recv (reader);
+    if (!request)
+        return 0;        //  Interrupted
+
+    char *command = zmsg_popstr (request);
+    if (streq (command, "$TERM"))
+        terminated = -1;
+    zstr_free (&command);
+    zmsg_destroy (&request);
+
+    return terminated;
+}
+
 static void
 s_console_actor (zsock_t *pipe, void *args)
 {
+    zmq_pollitem_t item;
+    zloop_t *loop = zloop_new();
+    assert (loop);
+    item.socket = NULL;
+    item.fd = STDIN_FILENO;
+    item.events = ZMQ_POLLIN;
+    item.revents = 0;
+    int rc = zloop_poller (loop, &item, s_handle_console, pipe);
+    assert (rc == 0);
+    rc = zloop_reader (loop, pipe, s_handle_pipe, NULL);
+    assert (rc == 0);
+
+
     zsock_signal (pipe, 0);             //  Tell caller we're ready
-    while (!zsys_interrupted) {
-        char command [1024];
-        if (fgets (command, sizeof (command), stdin)) {
-            //  Discard final newline
-            command [strlen (command) - 1] = 0;
-            if (*command)
-                zstr_send (pipe, command);
-        }
-    }
+    zloop_start(loop);
+    zloop_destroy (&loop);
 }
 
 
