@@ -90,7 +90,10 @@ glar_node_new (const char *iface, bool console)
     //  Grab us a new Zyre node
     self->zyre = zyre_new (NULL);
     zyre_set_interface (self->zyre, iface);
-    zsys_info ("using interface=%s", iface);
+    zsys_info ("using interface=%s my_uuid=%s my_name=%s", iface,
+            zyre_uuid (self->zyre),
+            zyre_name (self->zyre));
+
 
     //  Start actors
     self->panel = zactor_new (glar_panel_actor, NULL);
