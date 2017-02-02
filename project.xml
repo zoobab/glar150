@@ -18,8 +18,6 @@
     <class name = "glar_node">Glar150 service</class>
     <model name = "glar_node">Glar150 service FSM</model>
 
-    <actor name = "glar_morse">Morse lamp controller</actor>
-
     <extra name = "glard_init.sh" />
     <extra name = "rc.local" />
 </project>

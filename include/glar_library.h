@@ -67,15 +67,12 @@
 #ifdef GLAR_BUILD_DRAFT_API
 typedef struct _glar_node_t glar_node_t;
 #define GLAR_NODE_T_DEFINED
-typedef struct _glar_morse_t glar_morse_t;
-#define GLAR_MORSE_T_DEFINED
 #endif // GLAR_BUILD_DRAFT_API
 
 
 //  Public classes, each with its own header file
 #ifdef GLAR_BUILD_DRAFT_API
 #include "glar_node.h"
-#include "glar_morse.h"
 #endif // GLAR_BUILD_DRAFT_API
 
 #ifdef GLAR_BUILD_DRAFT_API

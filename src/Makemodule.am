@@ -19,7 +19,6 @@ include_HEADERS = \
 if ENABLE_DRAFTS
 include_HEADERS += \
     include/glar_node.h \
-    include/glar_morse.h
 
 endif
 src_libglar_la_SOURCES = \
@@ -30,7 +29,6 @@ src_libglar_la_SOURCES = \
 if ENABLE_DRAFTS
 src_libglar_la_SOURCES += \
     src/glar_node.c \
-    src/glar_morse.c
 
 endif
 

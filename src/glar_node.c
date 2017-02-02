@@ -28,7 +28,6 @@ struct _glar_node_t {
     zyre_t *zyre;               //  Zyre node instance
     zactor_t *console;          //  Command line input
     zactor_t *button;           //  Button monitor
-    zactor_t *morse;            //  Morse lamp controller
     zpoller_t *poller;          //  Socket poller
     zmsg_t *msg;                //  Last message we received
     zyre_event_t *event;        //  Last zyre_event received
@@ -132,9 +131,8 @@ glar_node_new (const char *iface, bool console)
 
     //  Start actors
     self->button = zactor_new (s_button_actor, NULL);
-    self->morse = zactor_new (glar_morse_actor, NULL);
     self->poller = zpoller_new (
-        zyre_socket (self->zyre), self->button, self->morse, NULL);
+        zyre_socket (self->zyre), self->button, NULL);
 
     if (console) {
         self->console = zactor_new (s_console_actor, NULL);
@@ -157,7 +155,6 @@ glar_node_destroy (glar_node_t **self_p)
         zyre_destroy (&self->zyre);
         zactor_destroy (&self->console);
         zactor_destroy (&self->button);
-        zactor_destroy (&self->morse);
         zpoller_destroy (&self->poller);
         zmsg_destroy (&self->msg);
         zyre_event_destroy (&self->event);
@@ -329,8 +326,8 @@ execute_the_command (glar_node_t *self)
 {
     char *command = zmsg_popstr (self->msg);
     zsys_info ("Run command '%s'", command);
-    if (*command == '#')        //  Display command as Morse code
-        zstr_send (self->morse, command + 1);
+    if (*command == '#')  {       //  was: Display command as Morse code
+    }
     else {
         char *results = s_run (command);
         if (results) {
@@ -404,7 +401,7 @@ static void
 start_emergency_sequence (glar_node_t *self)
 {
     zyre_shouts (self->zyre, "GLAR", "%s", "#SOS*");
-    zstr_send (self->morse, "SOS*");
+    // zstr_send (self->morse, "SOS*");// TODO:
 }
 
 
@@ -416,7 +413,7 @@ static void
 stop_emergency_sequence (glar_node_t *self)
 {
     zyre_shouts (self->zyre, "GLAR", "%s", "#");
-    zstr_send (self->morse, "");
+    // zstr_send (self->morse, ""); // TODO:
 }
 
 

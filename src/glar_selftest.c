@@ -30,7 +30,6 @@ all_tests [] = {
 #ifdef GLAR_BUILD_DRAFT_API
 // Tests for draft public classes:
     { "glar_node", glar_node_test },
-    { "glar_morse", glar_morse_test },
 #endif // GLAR_BUILD_DRAFT_API
 #ifdef GLAR_BUILD_DRAFT_API
     { "private_classes", glar_private_selftest },
@@ -92,7 +91,7 @@ main (int argc, char **argv)
         else
         if (streq (argv [argn], "--number")
         ||  streq (argv [argn], "-n")) {
-            puts ("2");
+            puts ("1");
             return 0;
         }
         else
@@ -100,7 +99,6 @@ main (int argc, char **argv)
         ||  streq (argv [argn], "-l")) {
             puts ("Available tests:");
             puts ("    glar_node\t\t- draft");
-            puts ("    glar_morse\t\t- draft");
             puts ("    private_classes\t- draft");
             return 0;
         }
