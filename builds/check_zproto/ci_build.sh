@@ -6,7 +6,6 @@ set -ex
 [ -n "${REPO_DIR-}" ] || exit 1
 
 docker run -e GSL_BUILD_DIR=/code/src -v "$REPO_DIR":/code zeromqorg/zproto -zproject:1 -q glar_node.xml
-docker run -e GSL_BUILD_DIR=/code/src -v "$REPO_DIR":/code zeromqorg/zproto -zproject:1 -q glar_panel.xml
 
 # keep an eye on git version used by CI
 git --version
