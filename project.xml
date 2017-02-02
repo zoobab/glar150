@@ -6,7 +6,7 @@
     <include filename = "license.xml" />
     <use project = "zyre" />
 
-    <main name = "glard">Glar150 daemon</main>
+    <main name = "glard" service = "1">Glar150 daemon</main>
 
     <class name = "glar_node">Glar150 service</class>
     <model name = "glar_node">Glar150 service FSM</model>
