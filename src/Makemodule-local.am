@@ -1,0 +1,5 @@
+EXTRA_DIST += \
+	src/glar_node_fsm.h
+
+AM_CPPFLAGS += \
+	-I$(srcdir)/src
