@@ -1,0 +1,5 @@
+usr/bin/glard
+usr/share/man/man1/glard.1
+etc/glar150/glard.cfg
+lib/systemd/system/glard.service
+
