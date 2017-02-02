@@ -69,8 +69,6 @@ typedef struct _glar_node_t glar_node_t;
 #define GLAR_NODE_T_DEFINED
 typedef struct _glar_panel_t glar_panel_t;
 #define GLAR_PANEL_T_DEFINED
-typedef struct _glar_morse_t glar_morse_t;
-#define GLAR_MORSE_T_DEFINED
 #endif // GLAR_BUILD_DRAFT_API
 
 
@@ -78,7 +76,6 @@ typedef struct _glar_morse_t glar_morse_t;
 #ifdef GLAR_BUILD_DRAFT_API
 #include "glar_node.h"
 #include "glar_panel.h"
-#include "glar_morse.h"
 #endif // GLAR_BUILD_DRAFT_API
 
 #ifdef GLAR_BUILD_DRAFT_API

@@ -129,7 +129,6 @@ IF (ENABLE_DRAFTS)
     list(APPEND glar_headers
         include/glar_node.h
         include/glar_panel.h
-        include/glar_morse.h
     )
 ENDIF (ENABLE_DRAFTS)
 
@@ -147,7 +146,6 @@ IF (ENABLE_DRAFTS)
     list (APPEND glar_sources
         src/glar_node.c
         src/glar_panel.c
-        src/glar_morse.c
     )
 ENDIF (ENABLE_DRAFTS)
 
@@ -252,7 +250,6 @@ IF (ENABLE_DRAFTS)
     list (APPEND TEST_CLASSES
     glar_node
     glar_panel
-    glar_morse
     )
 ENDIF (ENABLE_DRAFTS)
 
