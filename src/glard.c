@@ -35,6 +35,7 @@ main (int argc, char *argv [])
     //  Defaults
     bool verbose = false;
     bool console = false;
+    bool ipv6 = false;
     char *iface = "wlan0";
     char *node_name = NULL;
 
@@ -48,6 +49,7 @@ main (int argc, char *argv [])
             puts ("  --interface / -i       use this interface");
             puts ("  --console / -c         remote control console");
             puts ("  --name / -n MY_NAME    my node name (default: random)");
+            puts ("  --ipv6 / -6            connect over IPv6");
             return 0;
         }
         if (streq (argv [argn], "--verbose")
@@ -70,11 +72,16 @@ main (int argc, char *argv [])
         if (streq (argv [argn], "--interface")
         ||  streq (argv [argn], "-i"))
             iface = argv [++argn];
+        else
+        if (streq (argv [argn], "--ipv6")
+        ||  streq (argv [argn], "-6"))
+            ipv6 = true;
         else {
             zsys_error ("unknown option: %s\n", argv [argn]);
             return -1;
         }
     }
+    zsys_set_ipv6(ipv6);
     glar_node_t *node = glar_node_new (iface, console, node_name);
     glar_node_set_verbose (node, verbose);
     glar_node_execute (node);
