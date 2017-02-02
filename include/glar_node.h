@@ -20,7 +20,7 @@ extern "C" {
 //  @interface
 //  Create a new glar_node
 GLAR_EXPORT glar_node_t *
-    glar_node_new (const char *iface, bool console);
+    glar_node_new (const char *iface, bool console, const char *node_name);
 
 //  Destroy the glar_node
 GLAR_EXPORT void
