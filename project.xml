@@ -3,7 +3,14 @@
     prefix = "glar"
     script = "zproject.gsl"
     repository = "git://github.com/codejockey/glar150.git">
+
+    <abi current = "0" revision = "0" age = "0" />
     <include filename = "license.xml" />
+
+    <target name = "debian" />
+    <target name = "redhat" />
+    <target name = "travis" />
+
     <use project = "zyre" />
 
     <main name = "glard" service = "1">Glar150 daemon</main>

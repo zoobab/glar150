@@ -1,3 +1,5 @@
+# This is a skeleton created by zproject.
+# You can add hand-written code here.
 save.xml
 # Object files
 *.o
@@ -19,12 +21,18 @@ save.xml
 *.lo
 
 # Executables
-src/glar_selftest
+src/glar150_selftest
 src/glard
+src/glar_selftest
 *.exe
 *.out
 *.app
 core
+
+ # Distcheck workspace and archives
+glar150-0.0.0/
+glar150-0.0.0.tar.gz
+glar150-0.0.0.zip
 
 # Man pages
 doc/*.1
@@ -58,8 +66,28 @@ CMakeCache.txt
 CMakeFiles/
 CTestTestfile.cmake
 cmake_install.cmake
+compile_commands.json
+DartConfiguration.tcl
 install_manifest.txt
 Testing/
+
+# Repositories downloaded by CI integration scripts
+libzmq/
+czmq/
+zyre/
+
+# Travis build area
+tmp/
+
+# Valgrind files
+callgrind*
+vgcore*
+
+# Vagrant files
+.vagrant
+
+# CLion / PyCharm
+.idea
 
 # GYP files
 project.Makefile
@@ -81,6 +109,21 @@ src/app/jni/output
 # Python build directory
 build/
 
+# MSVC build directories
+obj/
+bin/
+*.tlog
+
+# Qt
+*pro.user
+moc_*
+build-*
+bindings/qt/selftest/selftest
+
 # Temporary files
 *.swp
+*.bak
+.test*
+
+# editor backups
 *~
