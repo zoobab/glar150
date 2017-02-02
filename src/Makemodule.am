@@ -19,7 +19,6 @@ include_HEADERS = \
 if ENABLE_DRAFTS
 include_HEADERS += \
     include/glar_node.h \
-    include/glar_panel.h \
     include/glar_morse.h
 
 endif
@@ -31,7 +30,6 @@ src_libglar_la_SOURCES = \
 if ENABLE_DRAFTS
 src_libglar_la_SOURCES += \
     src/glar_node.c \
-    src/glar_panel.c \
     src/glar_morse.c
 
 endif
@@ -95,7 +93,6 @@ src:
 # Produce generated code from models in the src directory
 code:
 	cd $(srcdir)/src; gsl -topdir:.. -zproject:1 -q glar_node.xml
-	cd $(srcdir)/src; gsl -topdir:.. -zproject:1 -q glar_panel.xml
 	cd $(srcdir); gsl -target:- project.xml
 
 check-local: src/glar_selftest

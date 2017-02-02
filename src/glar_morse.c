@@ -27,7 +27,6 @@
 struct _glar_morse_t {
     zsock_t *pipe;              //  Actor command pipe
     zpoller_t *poller;          //  Socket poller
-    zactor_t *panel;            //  LED control panel
     bool terminated;            //  Did caller ask us to quit?
     bool verbose;               //  Verbose logging enabled?
     char sequence [1024];       //  Current display sequence
@@ -58,7 +57,6 @@ glar_morse_new (zsock_t *pipe, void *args)
     self->pipe = pipe;
     self->poller = zpoller_new (self->pipe, NULL);
     self->timeout = -1;
-    self->panel = zactor_new (glar_panel_actor, NULL);
     return self;
 }
 
@@ -73,7 +71,6 @@ glar_morse_destroy (glar_morse_t **self_p)
     if (*self_p) {
         glar_morse_t *self = *self_p;
         zpoller_destroy (&self->poller);
-        zactor_destroy (&self->panel);
         free (self);
         *self_p = NULL;
     }
@@ -93,8 +90,6 @@ s_set_lamp (glar_morse_t *self, bool on)
             zsys_error ("can't write to GPIO 1");
         close (handle);
     }
-    //  Flash LEDs at same time as lamp
-    zstr_send (self->panel, on? "111": "000");
 }
 
 //  Convert text string into command sequence

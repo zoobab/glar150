@@ -26,7 +26,6 @@ struct _glar_node_t {
     bool verbose;               //  Trace activity yes/no
     fsm_t *fsm;                 //  Our finite state machine
     zyre_t *zyre;               //  Zyre node instance
-    zactor_t *panel;            //  LED control panel
     zactor_t *console;          //  Command line input
     zactor_t *button;           //  Button monitor
     zactor_t *morse;            //  Morse lamp controller
@@ -132,11 +131,10 @@ glar_node_new (const char *iface, bool console)
             zyre_name (self->zyre));
 
     //  Start actors
-    self->panel = zactor_new (glar_panel_actor, NULL);
     self->button = zactor_new (s_button_actor, NULL);
     self->morse = zactor_new (glar_morse_actor, NULL);
     self->poller = zpoller_new (
-        zyre_socket (self->zyre), self->panel, self->button, self->morse, NULL);
+        zyre_socket (self->zyre), self->button, self->morse, NULL);
 
     if (console) {
         self->console = zactor_new (s_console_actor, NULL);
@@ -157,7 +155,6 @@ glar_node_destroy (glar_node_t **self_p)
         glar_node_t *self = *self_p;
         fsm_destroy (&self->fsm);
         zyre_destroy (&self->zyre);
-        zactor_destroy (&self->panel);
         zactor_destroy (&self->console);
         zactor_destroy (&self->button);
         zactor_destroy (&self->morse);
@@ -208,8 +205,6 @@ join_network_as_robot (glar_node_t *self)
     zyre_start (self->zyre);
     zyre_join (self->zyre, "GLAR");
     //  Show rotating sequence until peer joins
-    zstr_send (self->panel, "100,010,001,100,010,001,");
-    zstr_send (self->panel, "100.010.001.*");
 }
 
 
@@ -341,14 +336,11 @@ execute_the_command (glar_node_t *self)
         if (results) {
             zsys_info ("System '%s' OK", command);
             //  Flash LED 1 once slowly
-            zstr_send (self->panel, "010;000;");
             zyre_whispers (self->zyre, zyre_event_peer_uuid (self->event), "%s", results);
             free (results);
         }
         else {
             zsys_info ("System '%s' FAIL", command);
-            //  Flash LED 2 once slowly
-            zstr_send (self->panel, "001;000;");
             zyre_whispers (self->zyre, zyre_event_peer_uuid (self->event), "%s", "failed");
         }
     }
@@ -378,9 +370,6 @@ signal_peer_joined (glar_node_t *self)
 {
     if (self->console)
         zsys_info ("JOINED peer=%s", zyre_event_peer_name (self->event));
-    else
-        //  Flash LED 1 three times rapidly
-        zstr_send (self->panel, "010,000,010,000,010,000,");
 }
 
 
@@ -393,9 +382,6 @@ signal_peer_left (glar_node_t *self)
 {
     if (self->console)
         zsys_info ("LEFT peer=%s", zyre_event_peer_name (self->event));
-    else
-        //  Flash LED 2 three times rapidly
-        zstr_send (self->panel, "001,000,001,000,001,000,");
 }
 
 
@@ -407,9 +393,6 @@ signal_peer_left (glar_node_t *self)
 static void
 show_at_rest_sequence (glar_node_t *self)
 {
-    //  At rest sequence, cycle slowly
-    if (!self->console)
-        zstr_send (self->panel, "100::010::001::*");
 }
 
 
