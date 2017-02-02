@@ -81,7 +81,7 @@ s_button_actor (zsock_t *pipe, void *args)
 //  Create a new glar node
 
 glar_node_t *
-glar_node_new (const char *iface, bool console)
+glar_node_new (const char *iface, bool console, const char *node_name)
 {
     glar_node_t *self = (glar_node_t *) zmalloc (sizeof (glar_node_t));
     assert (self);
@@ -89,11 +89,12 @@ glar_node_new (const char *iface, bool console)
 
     //  Grab us a new Zyre node
     self->zyre = zyre_new (NULL);
+    if (node_name == NULL)
+        node_name = zyre_name (self->zyre);
     zyre_set_interface (self->zyre, iface);
     zsys_info ("using interface=%s my_uuid=%s my_name=%s", iface,
             zyre_uuid (self->zyre),
-            zyre_name (self->zyre));
-
+            node_name);
 
     //  Start actors
     self->panel = zactor_new (glar_panel_actor, NULL);
@@ -422,7 +423,7 @@ glar_node_test (bool verbose)
     printf (" * glar_node: ");
 
     //  @selftest
-    glar_node_t *node = glar_node_new ("wlan0", false);
+    glar_node_t *node = glar_node_new ("wlan0", false, NULL);
     if (verbose)
         glar_node_set_verbose (node, verbose);
     assert (node);
