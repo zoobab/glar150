@@ -13,8 +13,6 @@
 # Ignore the source doc texts generated from program sources
 glar_node.txt
 glar_node.doc
-glar_panel.txt
-glar_panel.doc
 glar_morse.txt
 glar_morse.doc
 glard.txt

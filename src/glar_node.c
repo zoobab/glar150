@@ -132,7 +132,6 @@ glar_node_new (const char *iface, bool console)
             zyre_name (self->zyre));
 
     //  Start actors
-    self->panel = zactor_new (glar_panel_actor, NULL);
     self->button = zactor_new (s_button_actor, NULL);
     self->morse = zactor_new (glar_morse_actor, NULL);
     self->poller = zpoller_new (
