@@ -91,7 +91,7 @@ main (int argc, char **argv)
         else
         if (streq (argv [argn], "--number")
         ||  streq (argv [argn], "-n")) {
-            puts ("2");
+            puts ("1");
             return 0;
         }
         else
@@ -99,11 +99,6 @@ main (int argc, char **argv)
         ||  streq (argv [argn], "-l")) {
             puts ("Available tests:");
             puts ("    glar_node\t\t- draft");
-<<<<<<< HEAD
-            puts ("    glar_panel\t\t- draft");
-=======
-            puts ("    glar_morse\t\t- draft");
->>>>>>> 95b56616ae3967252e98f1ff084caf82df00ec20
             puts ("    private_classes\t- draft");
             return 0;
         }

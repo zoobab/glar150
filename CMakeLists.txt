@@ -128,11 +128,6 @@ set (glar_headers
 IF (ENABLE_DRAFTS)
     list(APPEND glar_headers
         include/glar_node.h
-<<<<<<< HEAD
-        include/glar_panel.h
-=======
-        include/glar_morse.h
->>>>>>> 95b56616ae3967252e98f1ff084caf82df00ec20
     )
 ENDIF (ENABLE_DRAFTS)
 
@@ -149,11 +144,6 @@ set (glar_sources
 IF (ENABLE_DRAFTS)
     list (APPEND glar_sources
         src/glar_node.c
-<<<<<<< HEAD
-        src/glar_panel.c
-=======
-        src/glar_morse.c
->>>>>>> 95b56616ae3967252e98f1ff084caf82df00ec20
     )
 ENDIF (ENABLE_DRAFTS)
 
@@ -257,11 +247,6 @@ set(TEST_CLASSES
 IF (ENABLE_DRAFTS)
     list (APPEND TEST_CLASSES
     glar_node
-<<<<<<< HEAD
-    glar_panel
-=======
-    glar_morse
->>>>>>> 95b56616ae3967252e98f1ff084caf82df00ec20
     )
 ENDIF (ENABLE_DRAFTS)
 
