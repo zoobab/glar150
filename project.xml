@@ -2,6 +2,8 @@
     name = "Glar150" description = "GL-AR150 demo using Zyre"
     prefix = "glar"
     script = "zproject.gsl"
+    email = "zeromq-dev@lists.zeromq.org"
+    license = "MPLv2"
     url = "https://github.com/ZMQers/glar150"
     repository = "https://github.com/ZMQers/glar150">
 
