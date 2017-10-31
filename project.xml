@@ -12,6 +12,7 @@
 
     <target name = "debian" />
     <target name = "redhat" />
+    <target name = "obs" />
     <target name = "travis" />
 
     <use project = "zyre" />
