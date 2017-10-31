@@ -7,6 +7,7 @@
     url = "https://github.com/ZMQers/glar150"
     repository = "https://github.com/ZMQers/glar150">
 
+    <version major = "0" minor = "0" patch = "1" />
     <abi current = "0" revision = "0" age = "0" />
     <include filename = "license.xml" />
 
