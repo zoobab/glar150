@@ -22,8 +22,8 @@ if [ "$BUILD_TYPE" == "default" ]; then
     cd -
 elif [ "$BUILD_TYPE" == "bindings" ] && [ "$BINDING" == "jni" ]; then
     ( cd bindings/jni && TERM=dumb PKG_CONFIG_PATH=/tmp/lib/pkgconfig ./gradlew clean bintrayUpload )
-    cp bindings/jni/android/glar150-android.jar glar150-android-0.0.0.jar
-    export GLAR150_DEPLOYMENT=glar150-android-0.0.0.jar
+    cp bindings/jni/android/glar150-android.jar glar150-android-0.0.1.jar
+    export GLAR150_DEPLOYMENT=glar150-android-0.0.1.jar
 else
     export GLAR150_DEPLOYMENT=""
 fi

@@ -1,18 +1,18 @@
 #
 #    glar150 - GL-AR150 demo using Zyre
 #
-#    Copyright (c) the Contributors as noted in the AUTHORS file.       
-#    This file is part of the Glar150 Project.                          
-#                                                                       
+#    Copyright (c) the Contributors as noted in the AUTHORS file.
+#    This file is part of the Glar150 Project.
+#
 #    This Source Code Form is subject to the terms of the Mozilla Public
 #    License, v. 2.0. If a copy of the MPL was not distributed with this
-#    file, You can obtain one at http://mozilla.org/MPL/2.0/.           
+#    file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 Source:         glar150
 Section:        net
 Priority:       optional
-Maintainer:     glar150 Developers <email@hostname.com>
-Standards-Version: 3.9.7
+Maintainer:     glar150 Developers <zeromq-dev@lists.zeromq.org>
+Standards-Version: 4.0.1.0
 Build-Depends: debhelper (>= 9),
     pkg-config,
     libzmq3-dev,
@@ -26,33 +26,37 @@ Build-Depends: debhelper (>= 9),
 Package: libglar0
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: gl-ar150 demo using zyre shared library
- This package contains shared library for glar150: gl-ar150 demo using zyre
+Description: glar150 shared library
+ This package contains shared library for glar150:
+ gl-ar150 demo using zyre
 
 Package: libglar-dev
 Architecture: any
 Section: libdevel
 Depends:
+    ${misc:Depends},
     libzmq3-dev,
     libczmq-dev,
     libzyre-dev,
     libglar0 (= ${binary:Version})
-Description: gl-ar150 demo using zyre development tools
- This package contains development files for glar150: gl-ar150 demo using zyre
+Description: glar150 development tools
+ This package contains development files for glar150:
+ gl-ar150 demo using zyre
 
 Package: glar150
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends},
-Description: gl-ar150 demo using zyre
- Main package for glar150: gl-ar150 demo using zyre
+Description: runnable binaries from glar150
+ Main package for glar150:
+ gl-ar150 demo using zyre
 
 Package: glar150-dbg
 Architecture: any
 Section: debug
-Priority: extra
+Priority: optional
 Depends:
     glar150 (= ${binary:Version}),
     ${misc:Depends}
-Description: gl-ar150 demo using zyre debugging symbols
- This package contains the debugging symbols for glar150 : gl-ar150 demo using zyre.
-
+Description: glar150 debugging symbols
+ This package contains the debugging symbols for glar150:
+ gl-ar150 demo using zyre.
