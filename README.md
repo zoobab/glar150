@@ -369,11 +369,15 @@ A simple way to test the glard daemon is to use a docker container which spawns 
 $ docker build -f Dockerfile.obs -t glard
 ```
 
+You should then have an image named "glard:latest" in "docker images".
+
 If you want to avoid building the docker image, there is one prebuilt for you:
 
-
-
-You should then have an image named "glard:latest" in "docker images".
+```
+$ docker run zoobab/glar150
+glard v1.0.1 -- GL-AR150 demo'n
+I: 17-11-01 18:08:26 using interface=eth0 my_uuid=1CF2281F0C9A4DD596C29EF1EF2F5C17 my_name=1CF228
+```
 
 Then spawn 3 containers running glard:
 
