@@ -2,13 +2,18 @@
     name = "Glar150" description = "GL-AR150 demo using Zyre"
     prefix = "glar"
     script = "zproject.gsl"
-    repository = "git://github.com/codejockey/glar150.git">
+    email = "zeromq-dev@lists.zeromq.org"
+    license = "MPLv2"
+    url = "https://github.com/ZMQers/glar150"
+    repository = "https://github.com/ZMQers/glar150">
 
+    <version major = "0" minor = "0" patch = "1" />
     <abi current = "0" revision = "0" age = "0" />
     <include filename = "license.xml" />
 
     <target name = "debian" />
     <target name = "redhat" />
+    <target name = "obs" />
     <target name = "travis" />
 
     <use project = "zyre" />

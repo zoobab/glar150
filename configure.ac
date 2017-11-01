@@ -7,7 +7,7 @@
 # Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.61)
 #
-AC_INIT([glar150],[0.0.0],[email@hostname.com])
+AC_INIT([glar150],[0.0.1],[zeromq-dev@lists.zeromq.org])
 
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
@@ -52,7 +52,11 @@ AC_PROG_SED
 AC_PROG_AWK
 PKG_PROG_PKG_CONFIG
 
+# Check endianess of the system
+AC_C_BIGENDIAN
+
 # Code coverage
+AC_MSG_CHECKING([whether to enable GCov])
 AC_ARG_WITH(gcov, [AS_HELP_STRING([--with-gcov=yes/no],
                   [With GCC Code Coverage reporting])],
                   [GLAR_GCOV="$withval"])
@@ -64,8 +68,27 @@ if test "x${GLAR_GCOV}" == "xyes"; then
         CFLAGS="${CFLAGS} ${GLAR_ORIG_CFLAGS}"
     fi
     AM_CONDITIONAL(WITH_GCOV, true)
+    AC_MSG_RESULT([yes])
 else
     AM_CONDITIONAL(WITH_GCOV, false)
+    AC_MSG_RESULT([no])
+fi
+
+# Memory mis-use detection
+AC_MSG_CHECKING([whether to enable ASan])
+AC_ARG_ENABLE(address-sanitizer, [AS_HELP_STRING([--enable-address-sanitizer=yes/no],
+                  [Build with GCC Address Sanitizer instrumentation])],
+                  [GLAR_ASAN="$enableval"])
+
+if test "x${GLAR_ASAN}" == "xyes"; then
+    CFLAGS="${CFLAGS} -fsanitize=address"
+    CXXFLAGS="${CXXFLAGS} -fsanitize=address"
+
+    AM_CONDITIONAL(ENABLE_ASAN, true)
+    AC_MSG_RESULT([yes])
+else
+    AM_CONDITIONAL(ENABLE_ASAN, false)
+    AC_MSG_RESULT([no])
 fi
 
 # Set pkgconfigdir
@@ -458,6 +481,9 @@ case "${host_os}" in
         AC_DEFINE(GLAR_HAVE_HPUX, 1, [Have HPUX OS])
         ;;
     *mingw32*)
+        # Disable format error due to incomplete ANSI C
+        CFLAGS="-Wno-error=format -Wno-unused-function -Wno-unused-variable -D_XOPEN_SOURCE $CFLAGS"
+        CPPFLAGS="-Wno-error=format -Wno-unused-function -Wno-unused-variable -D_XOPEN_SOURCE $CPPFLAGS"
         AC_DEFINE(GLAR_HAVE_WINDOWS, 1, [Have Windows OS])
         AC_DEFINE(GLAR_HAVE_MINGW32, 1, [Have MinGW32])
         AC_CHECK_HEADERS(windows.h)
@@ -467,7 +493,8 @@ case "${host_os}" in
     *mingw64*)
         # Define on MINGW64 to enable all libeary features
         # Disable format error due to incomplete ANSI C
-        CPPFLAGS="-Wno-error=format -D_XOPEN_SOURCE $CPPFLAGS"
+        CFLAGS="-Wno-error=format -Wno-unused-function -Wno-unused-variable -D_XOPEN_SOURCE $CFLAGS"
+        CPPFLAGS="-Wno-error=format -Wno-unused-function -Wno-unused-variable -D_XOPEN_SOURCE $CPPFLAGS"
         AC_DEFINE(GLAR_HAVE_WINDOWS, 1, [Have Windows OS])
         AC_DEFINE(GLAR_HAVE_MINGW32, 1, [Have MinGW32])
         AC_CHECK_HEADERS(windows.h)
@@ -650,6 +677,7 @@ AM_COND_IF([WITH_SYSTEMD_UNITS],
                  src/glard.service
     ])],
     [])
+
 
 AC_OUTPUT
 

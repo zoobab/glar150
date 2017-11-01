@@ -1,12 +1,12 @@
 #
 #    glar150 - GL-AR150 demo using Zyre
 #
-#    Copyright (c) the Contributors as noted in the AUTHORS file.       
-#    This file is part of the Glar150 Project.                          
-#                                                                       
+#    Copyright (c) the Contributors as noted in the AUTHORS file.
+#    This file is part of the Glar150 Project.
+#
 #    This Source Code Form is subject to the terms of the Mozilla Public
 #    License, v. 2.0. If a copy of the MPL was not distributed with this
-#    file, You can obtain one at http://mozilla.org/MPL/2.0/.           
+#    file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #
 
 # To build with draft APIs, use "--with drafts" in rpmbuild for local builds or add
@@ -20,11 +20,11 @@
 %define DRAFTS no
 %endif
 Name:           glar150
-Version:        0.0.0
+Version:        0.0.1
 Release:        1
 Summary:        gl-ar150 demo using zyre
-License:        MIT
-URL:            http://example.com/
+License:        MPLv2
+URL:            https://github.com/ZMQers/glar150
 Source0:        %{name}-%{version}.tar.gz
 Group:          System/Libraries
 # Note: ghostscript is required by graphviz which is required by
@@ -83,6 +83,7 @@ This package contains development files for glar150: gl-ar150 demo using zyre
 %{_mandir}/man7/*
 
 %prep
+
 %setup -q
 
 %build
